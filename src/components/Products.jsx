@@ -33,10 +33,10 @@ const EDGE = 'rgba(0,76,51,0.16)'
 
 // splash = image that shows behind the bottle on hover (desktop) / touch-hold (mobile)
 const PRODUCTS = [
-  { src: '/arrowroot.png', name: 'Arrowroot', text: 'Cool, smooth and gentle.', splash: '/arrowrootbg.png' },
-  { src: '/carrot.png', name: 'Carrot', text: 'Sweet, creamy and bright.', splash: '/carrotbg.png' },
-  { src: '/dates.png', name: 'Dates', text: 'Naturally sweet, no added sugar.', splash: '/datesbg.png' },
-  { src: '/guava.png', name: 'Guava', text: 'Tangy, tropical and fresh.', splash: '/guavabg.png' },
+  { src: '/1.png', name: 'Dates', text: 'Cool, smooth and gentle.', splash: '/datesbg.png' },
+  { src: '/2.png', name: 'Muskmelon', text: 'Sweet, creamy and bright.', splash: '/muskmelonbg.png' },
+  { src: '/3.png', name: 'Dates', text: 'Naturally sweet, no added sugar.', splash: '/milletbg.png' },
+  { src: '/4.png',  name: 'Carrot', text: 'Naturally sweet, no added sugar.', splash: '/carrotbg.png' },
   { src: '/ragi&dates.png', name: 'Ragi & Dates', text: 'Iron-rich ragi with sweet dates.', splash: '/ragibg.png' },
 ]
 
@@ -115,16 +115,14 @@ export default function Products() {
             return Math.max(0, dTrack.offsetWidth - visible)
           }
 
-          // bottles drop into their cards as the section arrives
-          gsap.set(bottles, { yPercent: -30, rotate: -8, autoAlpha: 0 })
+          // reveal each bottle in its card without moving it
+          gsap.set(bottles, { autoAlpha: 0 })
           gsap.to(bottles, {
-            yPercent: 0,
-            rotate: 0,
             autoAlpha: 1,
-            duration: 1.1,
-            ease: 'back.out(0.8)',
-            stagger: 0.12,
-            clearProps: 'transform,opacity,visibility',
+            duration: 0.35,
+            ease: 'power1.out',
+            stagger: 0.08,
+            clearProps: 'opacity,visibility',
             scrollTrigger: { trigger: dPin, start: 'top 75%', once: true },
           })
 
@@ -255,7 +253,7 @@ export default function Products() {
 
             {/* stage: fixed disc + bottle box (bottle is static inside this box, swaps instantly) */}
             <div
-              className="relative mt-3 min-h-0 flex-1 select-none overflow-hidden"
+              className="relative mt-3 min-h-[240px] flex-1 select-none overflow-hidden"
               style={{ WebkitTouchCallout: 'none' }}
               onPointerDown={startHold}
               onPointerUp={endHold}
@@ -392,6 +390,7 @@ export default function Products() {
                           alt={`Plain Culture ${p.name} bottle`}
                           fill
                           sizes="(min-width: 1280px) 20vw, 24vw"
+                          loading="eager"
                           className="select-none object-contain p-2 drop-shadow-2xl transition-transform duration-500 ease-out group-hover:-translate-y-2 group-hover:-rotate-3"
                           draggable={false}
                         />

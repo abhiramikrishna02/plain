@@ -5,32 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 export default function Navbar() {
-  const [isVisible, setIsVisible] = useState(true);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  useEffect(() => {
-    let lastScrollY = window.scrollY;
-
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-
-      // Hide if scrolling down and past the initial 80px (navbar height)
-      if (currentScrollY > lastScrollY && currentScrollY > 80) {
-        setIsVisible(false);
-      }
-      // Show if scrolling up
-      else if (currentScrollY < lastScrollY) {
-        setIsVisible(true);
-      }
-
-      lastScrollY = currentScrollY;
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-
-    // Cleanup event listener on component unmount
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -41,16 +16,32 @@ export default function Navbar() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const closeMenu = () => setIsMenuOpen(false);
+  const handleNavigation = (event) => {
+    const href = event.currentTarget.getAttribute("href");
+    if (!href?.startsWith("#")) return;
+
+    const target = document.getElementById(href.slice(1));
+    if (!target) return;
+
+    event.preventDefault();
+    setIsMenuOpen(false);
+
+    if (window.location.hash !== href) {
+      window.history.pushState(null, "", href);
+    }
+
+    requestAnimationFrame(() => {
+      const top = window.scrollY + target.getBoundingClientRect().top;
+      window.scrollTo({ top, behavior: "smooth" });
+    });
+  };
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-50 bg-transparent text-[#F7E8C8] transition-transform duration-300 ease-in-out ${
-        isVisible ? "translate-y-0" : "-translate-y-full"
-      }`}
+      className="fixed inset-x-0 top-0 z-[100] w-full bg-transparent text-white"
     >
       <nav className="mx-auto flex h-20 w-full max-w-[1536px] items-center justify-between px-5 sm:px-8 lg:px-20" aria-label="Main navigation">
-        <Link href="#home" className="shrink-0" aria-label="Plain Culture home">
+        <Link href="#home" onClick={handleNavigation} className="shrink-0" aria-label="Plain Culture home">
           <Image
             src="/logo.png"
             alt="Plain Culture"
@@ -62,21 +53,22 @@ export default function Navbar() {
         </Link>
 
         <div className="hidden items-center gap-5 text-sm font-medium sm:flex sm:gap-8 sm:text-base">
-          <Link className="transition-colors hover:text-[#B7E51B]" href="#home">
+          <Link onClick={handleNavigation} className="[text-shadow:0_1px_4px_rgba(0,0,0,0.95)] transition-colors hover:text-[#B7E51B]" href="#home">
             Home
           </Link>
-          <Link className="transition-colors hover:text-[#B7E51B]" href="#products">
+          <Link onClick={handleNavigation} className="[text-shadow:0_1px_4px_rgba(0,0,0,0.95)] transition-colors hover:text-[#B7E51B]" href="#products">
             Products
           </Link>
-          <Link className="transition-colors hover:text-[#B7E51B]" href="#about">
+          <Link onClick={handleNavigation} className="[text-shadow:0_1px_4px_rgba(0,0,0,0.95)] transition-colors hover:text-[#B7E51B]" href="#about">
             About
           </Link>
-          <Link className="transition-colors hover:text-[#B7E51B]" href="#contact">
+          <Link onClick={handleNavigation} className="[text-shadow:0_1px_4px_rgba(0,0,0,0.95)] transition-colors hover:text-[#B7E51B]" href="#contact">
             Contact
           </Link>
           <Link
             className="rounded-full bg-[#B7E51B] px-4 py-2.5 font-semibold text-[#1A1A1A] transition-transform hover:scale-105 sm:px-5"
             href="#products"
+            onClick={handleNavigation}
           >
             Shop
           </Link>
@@ -84,7 +76,7 @@ export default function Navbar() {
 
         <button
           type="button"
-          className="flex h-11 w-11 items-center justify-center rounded-full border border-[#F7E8C8]/40 text-[#F7E8C8] sm:hidden"
+          className="flex h-11 w-11 items-center justify-center rounded-full border border-white/60 text-white [filter:drop-shadow(0_1px_3px_rgba(0,0,0,0.9))] sm:hidden"
           onClick={() => setIsMenuOpen((open) => !open)}
           aria-expanded={isMenuOpen}
           aria-controls="mobile-navigation"
@@ -101,19 +93,19 @@ export default function Navbar() {
       {isMenuOpen && (
         <div id="mobile-navigation" className="border-t border-[#F7E8C8]/15 bg-[#004C33] px-5 py-5 text-[#F7E8C8] sm:hidden">
           <div className="mx-auto flex max-w-[1536px] flex-col gap-1 text-base font-medium">
-            <Link className="py-3 transition-colors hover:text-[#B7E51B]" href="#home" onClick={closeMenu}>
+            <Link className="py-3 transition-colors hover:text-[#B7E51B]" href="#home" onClick={handleNavigation}>
               Home
             </Link>
-            <Link className="py-3 transition-colors hover:text-[#B7E51B]" href="#products" onClick={closeMenu}>
+            <Link className="py-3 transition-colors hover:text-[#B7E51B]" href="#products" onClick={handleNavigation}>
               Products
             </Link>
-            <Link className="py-3 transition-colors hover:text-[#B7E51B]" href="#about" onClick={closeMenu}>
+            <Link className="py-3 transition-colors hover:text-[#B7E51B]" href="#about" onClick={handleNavigation}>
               About
             </Link>
-            <Link className="py-3 transition-colors hover:text-[#B7E51B]" href="#contact" onClick={closeMenu}>
+            <Link className="py-3 transition-colors hover:text-[#B7E51B]" href="#contact" onClick={handleNavigation}>
               Contact
             </Link>
-            <Link className="mt-2 w-fit rounded-full bg-[#B7E51B] px-5 py-2.5 font-semibold text-[#1A1A1A]" href="#products" onClick={closeMenu}>
+            <Link className="mt-2 w-fit rounded-full bg-[#B7E51B] px-5 py-2.5 font-semibold text-[#1A1A1A]" href="#products" onClick={handleNavigation}>
               Shop
             </Link>
           </div>

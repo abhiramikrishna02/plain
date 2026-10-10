@@ -1,50 +1,20 @@
 'use client'
 
+/* eslint-disable @next/next/no-img-element */
 /**
  * components/Hero.jsx — Plain Culture hero
  *
- * Sequence:
- *   Hero.mp4 (plays once, playback-synced dissolve into the first static
- *   composition — unchanged from before) → hold ~2s → cinematic transition
- *   into flavour 2 → hold ~2s → transition into flavour 3 → final hold.
+ * Hero.mp4 plays once and dissolves into flavour 1 → hold → slide transition into flavour 2 → hold → flavour 3 → hold → loop.
+ * Two layer sets (bg / items / bottle, A and B) ping-pong: the front set shows the current flavour, the back set preloads the
+ * next one and crossfades in, then the roles swap. Depth: video → bg → items → bottle → readability overlay → carousel → text.
+ * All motion is a plain vertical slide + fade. The right-side carousel icons follow the active slide (icon N = PRODUCTS[N]) and are clickable to jump to a slide.
  *
- * The three flavours reuse just two DOM layer-*sets* (bg A/B, items A/B,
- * bottle A/B) in a ping-pong: whichever set is "front" holds the current
- * flavour; the "back" set is preloaded with the next flavour ahead of time
- * and crossfades in, then the roles swap. Nothing new is mounted per
- * transition.
- *
- * Depth order (back to front): video → background → items (ingredients) →
- * bottle → readability overlay → text/UI. Background is visible first; the
- * bottle slides straight down from above the frame into its resting spot;
- * the items composition sits in the layer behind the bottle and in front of
- * the background, sliding in with the same downward motion at a smaller
- * scale. Every layer's motion is a plain vertical slide + fade — no
- * rotation, no scale-pulse — so the whole scene reads as one consistent
- * "sliding into place" gesture rather than separate effects per layer.
- *
- * Assets required in /public:
- *   Hero.mp4
- *   bg.png,  items.png,  bottle.png    (flavour 1)
- *   bg1.png, items1.png, bottle1.png   (flavour 2)
- *   bg2.png, items2.png, bottle2.png   (flavour 3)
- *
- *   NOTE: the original asset brief flagged the flavour-3 items file under an
- *   odd literal name ("items.2png"). If that's what actually exists in
- *   /public, change PRODUCTS[2].items below to match exactly — nothing else
- *   in this file needs to change.
- *
- * Dependency: gsap
- *
- * Note: this component intentionally renders no <nav> — the site's global
- * navbar (mounted in the root layout, above Hero) already covers that.
- *
- * TUNING: PRODUCTS[0].position / itemsPosition are measured against your
- * actual Hero.mp4 / bg.png / items.png / bottle.png already. PRODUCTS[1] and
- * PRODUCTS[2] currently copy those same numbers as a starting guess —
- * bottle1/2.png and items1/2.png almost certainly have different
- * dimensions/framing, so those two need the same hand-tuning pass against
- * their own backgrounds.
+ * /public assets: Hero.mp4, bg/items/bottle.png, bg1/items1/bottle1.png, bg2/items2/bottle2.png,
+ *                 arrowroot0.png, carrot0.png, dates0.png, guava0.png
+ * NOTE: if the flavour-3 items file is literally named "items.2png", change PRODUCTS[2].items to match.
+ * TUNING: POSITION / ITEMS_POSITION are measured against flavour 1; flavours 2 and 3 reuse them as a starting guess — give a
+ * product its own literal `position` / `itemsPosition` (optional `mobile` override under 768px) once tuned.
+ * Dependency: gsap. No <nav> here — the global navbar lives in the root layout.
  */
 
 import { useEffect, useRef, useState } from 'react'
@@ -54,121 +24,113 @@ import gsap from 'gsap'
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-display', display: 'swap' })
 const outfit = Outfit({ subsets: ['latin'], variable: '--font-sans', display: 'swap' })
 
-// How long (seconds) before the video's real, dynamically-read end the
-// dissolve into the first flavour runs. Never hardcode the clip's duration.
+// Seconds before the video's real (dynamically-read) end that the dissolve into flavour 1 runs.
 const SETTLE_WINDOW = 0.5
-
-// How long each flavour holds once fully settled, and how long each
-// flavour-to-flavour transition takes.
+// How long each flavour holds once settled, and how long each flavour-to-flavour transition takes.
 const HOLD_MS = 2000
 const TRANSITION_S = 0.75
-
-// Slide distances (px) for the entrance/exit of each layer. Bottle and items
-// both travel downward — arriving from above, leaving by continuing further
-// down — so the motion reads as one continuous flow rather than layers
-// bouncing in from different directions. Background only drifts a few
-// pixels since it's full-bleed and shouldn't reveal any edge.
+// Vertical slide distances (px): layers arrive from above and leave downward; the full-bleed bg only drifts slightly.
 const BOTTLE_ENTER_Y = -90
 const BOTTLE_EXIT_Y = 70
 const ITEMS_ENTER_Y = -40
 const ITEMS_EXIT_Y = 32
 const BG_DRIFT_Y = 8
 
-// Each flavour's background + items + bottle trio, plus each layer's own
-// placement. `rotate` is the bottle's resting (static) Z-rotation — usually
-// 0 — not something that gets animated. `itemsPosition.height` is
-// intentionally modest, sized like the bottle rather than full-viewport, so
-// the ingredient composition reads as a halo supporting the product. An
-// optional `mobile` object on either position can override top/height/rotate
-// under 768px — applied at transition time, not on resize.
+const LIME = '#BEF264'
+const INK = '#14201A'
+const CREAM = 'rgba(247,232,200,0.86)'
+const RISE = { transform: 'translateY(18px)' }
+
+// Matches the last frame of Hero.mp4; the items composition bleeds past the top and bottom of the frame.
+const POSITION = { top: '17%', height: 'clamp(400px, 51vh, 740px)', rotate: 0 }
+const ITEMS_POSITION = { top: '-4%', height: 'clamp(680px, 104vh, 1080px)' }
+
 const PRODUCTS = [
-  {
-    id: 'orange',
-    background: '/bg.png',
-    items: '/items.png',
-    bottle: '/bottle.png',
-    alt: 'Plain Culture — Orange',
-    // Matches the last frame of Hero.mp4: the can reads at roughly half the
-    // viewport's height, starting a little below the top of the frame.
-    position: { top: '17%', height: 'clamp(400px, 51vh, 740px)', rotate: 0 },
-    // The fruit/leaf composition in that same still bleeds past both the
-    // top and bottom edges of the frame rather than sitting fully inside
-    // it — hence height slightly over 100vh and a negative top.
-    itemsPosition: { top: '-4%', height: 'clamp(680px, 104vh, 1080px)' },
-  },
-  {
-    id: 'guava',
-    background: '/bg1.png',
-    items: '/items1.png',
-    bottle: '/bottle1.png',
-    alt: 'Plain Culture — Guava',
-    position: { top: '17%', height: 'clamp(400px, 51vh, 740px)', rotate: 0 },
-    itemsPosition: { top: '-4%', height: 'clamp(680px, 104vh, 1080px)' },
-  },
-  {
-    id: 'grape',
-    background: '/bg2.png',
-    items: '/items2.png',
-    bottle: '/bottle2.png',
-    alt: 'Plain Culture — Grape',
-    position: { top: '17%', height: 'clamp(400px, 51vh, 740px)', rotate: 0 },
-    itemsPosition: { top: '-4%', height: 'clamp(680px, 104vh, 1080px)' },
-  },
+  { id: 'orange', background: '/bg.png', items: '/items.png', bottle: '/bottle.png', alt: 'Plain Culture — Orange', position: POSITION, itemsPosition: ITEMS_POSITION },
+  { id: 'guava', background: '/bg1.png', items: '/items1.png', bottle: '/bottle1.png', alt: 'Plain Culture — Guava', position: POSITION, itemsPosition: ITEMS_POSITION },
+  { id: 'grape', background: '/bg2.png', items: '/items2.png', bottle: '/bottle2.png', alt: 'Plain Culture — Grape', position: POSITION, itemsPosition: ITEMS_POSITION },
 ]
 
-function resolvePosition(product) {
-  const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches
-  return { ...product.position, ...(isMobile && product.position.mobile ? product.position.mobile : null) }
-}
+// Right-side carousel icons, top to bottom. Icon N is highlighted while PRODUCTS[N] is showing.
+const CAROUSEL_ICONS = [
+  { id: 'arrowroot', src: '/arrowroot0.png' },
+  { id: 'carrot', src: '/carrot0.png' },
+  { id: 'dates', src: '/dates0.png' },
+  { id: 'guava', src: '/guava0.png' },
+]
 
-function resolveItemsPosition(product) {
-  const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches
-  return { ...product.itemsPosition, ...(isMobile && product.itemsPosition.mobile ? product.itemsPosition.mobile : null) }
+const place = (p) => ({ left: '50%', width: 'auto', top: p.top, height: p.height })
+// DOM layers, each rendered twice (set A with the first flavour's asset, set B empty until its first transition).
+const LAYERS = [
+  { k: 'bg', cls: 'absolute inset-0 h-full w-full object-cover', style: { zIndex: 1 }, src: PRODUCTS[0].background, alt: '' },
+  { k: 'items', cls: 'absolute', style: { zIndex: 2, ...place(PRODUCTS[0].itemsPosition) }, src: PRODUCTS[0].items, alt: '' },
+  { k: 'bottle', cls: 'absolute', style: { zIndex: 3, ...place(PRODUCTS[0].position) }, src: PRODUCTS[0].bottle, alt: PRODUCTS[0].alt },
+]
+
+const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+// Applies the optional `mobile` override (under 768px) to a position object.
+const resolve = (pos) => ({ ...pos, ...(typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches && pos.mobile ? pos.mobile : null) })
+
+// Highlights one carousel pill, dims the rest, and fills the active pill's progress line over `fillSeconds`.
+function activateIcon(pills, bars, index, reduce, fillSeconds) {
+  pills.forEach((pill, i) => {
+    const active = i === index
+    pill.setAttribute('aria-current', String(active))
+    gsap.to(pill, {
+      scale: active ? 1.14 : 1,
+      opacity: active ? 1 : 0.9,
+      borderColor: active ? 'rgba(190,242,100,1)' : 'rgba(247,232,200,0.4)',
+      backgroundColor: active ? 'rgba(22,42,16,0.72)' : 'rgba(10,26,18,0.5)',
+      boxShadow: active
+        ? '0 0 34px rgba(190,242,100,0.5), inset 0 1px 0 rgba(255,255,255,0.4)'
+        : '0 10px 26px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.22)',
+      duration: reduce ? 0 : 0.5,
+      ease: 'power3.out',
+      overwrite: 'auto',
+    })
+    const bar = bars[i]
+    gsap.killTweensOf(bar)
+    if (!active) return void gsap.to(bar, { opacity: 0, duration: reduce ? 0 : 0.3 })
+    gsap.set(bar, { scaleX: reduce ? 1 : 0, opacity: 1 })
+    if (!reduce) gsap.to(bar, { scaleX: 1, duration: fillSeconds, ease: 'none' })
+  })
 }
 
 export default function Hero() {
   const sectionRef = useRef(null)
   const videoRef = useRef(null)
-  const bgARef = useRef(null)
-  const bgBRef = useRef(null)
-  const itemsARef = useRef(null)
-  const itemsBRef = useRef(null)
-  const bottleARef = useRef(null)
-  const bottleBRef = useRef(null)
   const copyRef = useRef(null)
-
+  const carouselRef = useRef(null)
+  const pillRefs = useRef([])
+  const barRefs = useRef([])
+  const layers = useRef({ bg: [], items: [], bottle: [] }) // index 0 = set A, 1 = set B
+  const failedA = useRef({}) // set-A asset load failures, keyed by layer
+  const assetStatus = useRef({}) // src → 'ok' | 'error', filled by the preloader
   const videoTransitioned = useRef(false)
-  const bgAFailed = useRef(false)
-  const itemsAFailed = useRef(false)
-  const bottleAFailed = useRef(false)
-
-  // src → 'ok' | 'error', populated by the background preloader below.
-  const assetStatus = useRef({})
-
-  // Which layer set is currently front, and which flavour index it holds.
-  const frontIsA = useRef(true)
-  const productIndex = useRef(0)
+  const frontIsA = useRef(true) // which layer set is front
+  const productIndex = useRef(0) // which flavour the front set holds
   const parallaxPaused = useRef(false)
+  const goTo = useRef(null) // set by the transition effect: jumps to a specific slide (carousel clicks)
 
-  // Only one React state drives this component — no per-frame or
-  // per-transition re-renders. Everything else is refs + direct GSAP/DOM.
+  // The only React state — no per-frame or per-transition re-renders; everything else is refs + GSAP.
   const [uiReady, setUiReady] = useState(false)
 
-  /* ─── video → playback-synced dissolve → first static flavour (layer set A) ─── */
+  const setRef = (arr, i) => (el) => {
+    arr[i] = el
+  }
+
+  /* ─── video → playback-synced dissolve → first static flavour (set A) ─── */
   useEffect(() => {
     const video = videoRef.current
-    const bg = bgARef.current
-    const items = itemsARef.current
-    const bottle = bottleARef.current
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const { bg, items, bottle } = layers.current
+    const failed = failedA.current
+    const reduce = reducedMotion()
 
-    // Background is centered via plain full-bleed positioning (no transform),
-    // so it only ever needs opacity. Items and bottle are centered with
-    // xPercent and slide in vertically, so their starting y is set here too.
-    if (items) gsap.set(items, { xPercent: -50, y: ITEMS_ENTER_Y, opacity: 0 })
-    if (itemsBRef.current) gsap.set(itemsBRef.current, { xPercent: -50 })
-    if (bottle) gsap.set(bottle, { xPercent: -50, rotation: PRODUCTS[0].position.rotate || 0, y: BOTTLE_ENTER_Y, opacity: 0 })
-    if (bottleBRef.current) gsap.set(bottleBRef.current, { xPercent: -50 })
+    // bg is full-bleed (opacity only); items and bottle are centred with xPercent and slide in vertically.
+    gsap.set(items[0], { xPercent: -50, y: ITEMS_ENTER_Y, opacity: 0 })
+    gsap.set(bottle[0], { xPercent: -50, rotation: PRODUCTS[0].position.rotate || 0, y: BOTTLE_ENTER_Y, opacity: 0 })
+    gsap.set([items[1], bottle[1]], { xPercent: -50 })
 
     const finish = () => {
       if (videoTransitioned.current) return
@@ -177,17 +139,13 @@ export default function Hero() {
         video.pause()
         video.style.opacity = '0'
       }
-      if (bg && !bgAFailed.current) bg.style.opacity = '1'
-      if (items && !itemsAFailed.current) gsap.set(items, { opacity: 1, y: 0 })
-      if (bottle && !bottleAFailed.current) gsap.set(bottle, { opacity: 1, y: 0 })
+      if (!failed.bg) bg[0].style.opacity = '1'
+      if (!failed.items) gsap.set(items[0], { opacity: 1, y: 0 })
+      if (!failed.bottle) gsap.set(bottle[0], { opacity: 1, y: 0 })
       setUiReady(true)
     }
 
-    if (reduce) {
-      finish()
-      return
-    }
-
+    if (reduce) return finish()
     if (!video) return
 
     let raf
@@ -198,16 +156,12 @@ export default function Hero() {
         const remaining = duration - video.currentTime
         if (remaining <= SETTLE_WINDOW) {
           const progress = gsap.utils.clamp(0, 1, 1 - remaining / SETTLE_WINDOW)
-          if (bg && !bgAFailed.current) bg.style.opacity = String(progress)
-          // Bottle (and items, more subtly) slide down into place in step
-          // with the same dissolve progress the background fades in on.
-          if (items && !itemsAFailed.current) gsap.set(items, { opacity: progress, y: ITEMS_ENTER_Y * (1 - progress) })
-          if (bottle && !bottleAFailed.current) gsap.set(bottle, { opacity: progress, y: BOTTLE_ENTER_Y * (1 - progress) })
+          if (!failed.bg) bg[0].style.opacity = String(progress)
+          // Items and bottle slide down into place in step with the bg fade.
+          if (!failed.items) gsap.set(items[0], { opacity: progress, y: ITEMS_ENTER_Y * (1 - progress) })
+          if (!failed.bottle) gsap.set(bottle[0], { opacity: progress, y: BOTTLE_ENTER_Y * (1 - progress) })
         }
-        if (remaining <= 0.03) {
-          finish()
-          return
-        }
+        if (remaining <= 0.03) return finish()
       }
       raf = requestAnimationFrame(tick)
     }
@@ -215,7 +169,6 @@ export default function Hero() {
 
     video.addEventListener('ended', finish)
     video.addEventListener('error', finish)
-
     const playPromise = video.play()
     if (playPromise?.catch) playPromise.catch(finish)
 
@@ -226,11 +179,10 @@ export default function Hero() {
     }
   }, [])
 
-  /* ─── preload flavours 2 and 3 in the background (flavour 1 already loads via layer set A above) ─── */
+  /* ─── preload flavours 2 and 3 (flavour 1 already loads via set A) ─── */
   useEffect(() => {
-    PRODUCTS.forEach((p, i) => {
-      if (i === 0) return
-      ;[p.background, p.items, p.bottle].forEach((src) => {
+    PRODUCTS.slice(1).forEach((p) =>
+      [p.background, p.items, p.bottle].forEach((src) => {
         const img = new window.Image()
         img.onload = () => {
           assetStatus.current[src] = 'ok'
@@ -240,173 +192,166 @@ export default function Hero() {
         }
         img.src = src
       })
-    })
+    )
   }, [])
 
   /* ─── copy reveal — once only, stays stable across flavour changes ─── */
   useEffect(() => {
     if (!uiReady) return
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const $ = gsap.utils.selector(copyRef)
-    const eyebrow = $('[data-eyebrow]')
-    const headline = $('[data-headline]')
-    const desc = $('[data-desc]')
-    const cta = $('[data-cta]')
+    const [eyebrow, headline, desc, cta] = ['eyebrow', 'headline', 'desc', 'cta'].map((k) => $(`[data-${k}]`))
 
-    if (reduce) {
+    if (reducedMotion()) {
       gsap.to([...eyebrow, ...headline, ...desc, ...cta], { opacity: 1, duration: 0.4 })
       return
     }
 
     gsap
-      .timeline({ delay: 0.15 })
-      .to(eyebrow, { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' })
-      .to(headline, { opacity: 1, y: 0, duration: 0.65, ease: 'power3.out' }, '-=0.32')
-      .to(desc, { opacity: 1, y: 0, duration: 0.55, ease: 'power3.out' }, '-=0.4')
-      .to(cta, { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' }, '-=0.32')
+      .timeline({ delay: 0.15, defaults: { opacity: 1, y: 0, ease: 'power3.out' } })
+      .to(eyebrow, { duration: 0.5 })
+      .to(headline, { duration: 0.65 }, '-=0.32')
+      .to(desc, { duration: 0.55 }, '-=0.4')
+      .to(cta, { duration: 0.5 }, '-=0.32')
+  }, [uiReady])
+
+  /* ─── carousel icons — fade in once after the video settles, first icon active ─── */
+  useEffect(() => {
+    if (!uiReady) return
+    const reduce = reducedMotion()
+    const wrap = carouselRef.current
+    const pills = pillRefs.current
+    const bars = barRefs.current
+
+    if (reduce) gsap.set(wrap, { opacity: 1 })
+    else gsap.fromTo(wrap, { opacity: 0, x: 18 }, { opacity: 1, x: 0, duration: 0.7, delay: 0.4, ease: 'power3.out' })
+    activateIcon(pills, bars, 0, reduce, HOLD_MS / 1000) // first slide holds HOLD_MS before the first transition
+
+    return () => {
+      gsap.killTweensOf([wrap, ...pills, ...bars])
+    }
   }, [uiReady])
 
   /* ─── flavour transition sequence, after the video-freeze settles ─── */
   useEffect(() => {
     if (!uiReady) return
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const reduce = reducedMotion()
+    const { bg, items, bottle } = layers.current
     let cancelled = false
-    const timers = []
+    let busy = false // a transition is running
+    let pending = null // slide requested by a click while busy
+    let holdTimer
+    const bgFailed = (i) => assetStatus.current[PRODUCTS[i].background] === 'error'
 
-    const currentLayers = () => ({
-      bgFront: frontIsA.current ? bgARef.current : bgBRef.current,
-      bgBack: frontIsA.current ? bgBRef.current : bgARef.current,
-      itemsFront: frontIsA.current ? itemsARef.current : itemsBRef.current,
-      itemsBack: frontIsA.current ? itemsBRef.current : itemsARef.current,
-      bottleFront: frontIsA.current ? bottleARef.current : bottleBRef.current,
-      bottleBack: frontIsA.current ? bottleBRef.current : bottleARef.current,
-    })
-
-    const applyPosition = (el, pos) => {
-      if (!el) return
+    const load = (el, src) => {
+      el.onerror = () => {
+        assetStatus.current[src] = 'error'
+      }
+      el.src = src
+    }
+    // Loads and positions a back-set layer at its entry pose (or hides it if its asset failed).
+    const prep = (el, src, ok, pos, from) => {
+      if (!ok) return void gsap.set(el, { opacity: 0 })
+      load(el, src)
       el.style.top = pos.top
       el.style.height = pos.height
+      gsap.set(el, { ...from, opacity: 0 })
     }
 
-    const advance = () => {
+    // Transitions to `forced` (a clicked slide), or to the next slide when called without an argument.
+    const advance = (forced) => {
       if (cancelled) return
-      let targetIndex = productIndex.current + 1
-      // Background is required; if it failed to load, skip that flavour entirely.
-      while (targetIndex < PRODUCTS.length && assetStatus.current[PRODUCTS[targetIndex].background] === 'error') {
-        targetIndex += 1
+      let targetIndex = forced ?? (productIndex.current + 1) % PRODUCTS.length
+      let checked = 0
+      // Background is required; if it failed to load, skip that flavour entirely (automatic advance only).
+      while (forced == null && checked < PRODUCTS.length && bgFailed(targetIndex)) {
+        targetIndex = (targetIndex + 1) % PRODUCTS.length
+        checked += 1
       }
-      if (targetIndex >= PRODUCTS.length) return // sequence complete — hold forever
+      if (checked >= PRODUCTS.length) return // every background failed — keep the current scene
 
       const product = PRODUCTS[targetIndex]
-      const rest = product.position.rotate || 0
       const itemsOk = assetStatus.current[product.items] !== 'error'
       const bottleOk = assetStatus.current[product.bottle] !== 'error'
-      const { bgFront, bgBack, itemsFront, itemsBack, bottleFront, bottleBack } = currentLayers()
+      const [f, b] = frontIsA.current ? [0, 1] : [1, 0] // front / back set indices
 
-      if (bgBack) {
-        bgBack.onerror = () => {
-          assetStatus.current[product.background] = 'error'
-        }
-        bgBack.src = product.background
-      }
-      if (itemsBack) {
-        if (itemsOk) {
-          itemsBack.onerror = () => {
-            assetStatus.current[product.items] = 'error'
-          }
-          itemsBack.src = product.items
-          applyPosition(itemsBack, resolveItemsPosition(product))
-          gsap.set(itemsBack, { y: ITEMS_ENTER_Y, opacity: 0 })
-        } else {
-          gsap.set(itemsBack, { opacity: 0 })
-        }
-      }
-      if (bottleBack) {
-        if (bottleOk) {
-          bottleBack.onerror = () => {
-            assetStatus.current[product.bottle] = 'error'
-          }
-          bottleBack.src = product.bottle
-          applyPosition(bottleBack, resolvePosition(product))
-          gsap.set(bottleBack, { rotation: rest, y: BOTTLE_ENTER_Y, opacity: 0 })
-        } else {
-          gsap.set(bottleBack, { opacity: 0 })
-        }
-      }
+      // Carousel: move the highlight to this slide's icon as the transition begins.
+      activateIcon(pillRefs.current, barRefs.current, targetIndex % CAROUSEL_ICONS.length, reduce, TRANSITION_S + HOLD_MS / 1000)
 
+      load(bg[b], product.background)
+      prep(items[b], product.items, itemsOk, resolve(product.itemsPosition), { y: ITEMS_ENTER_Y })
+      prep(bottle[b], product.bottle, bottleOk, resolve(product.position), { rotation: product.position.rotate || 0, y: BOTTLE_ENTER_Y })
+
+      busy = true
       parallaxPaused.current = true
       const tl = gsap.timeline({
         onComplete: () => {
           productIndex.current = targetIndex
           frontIsA.current = !frontIsA.current
           parallaxPaused.current = false
-          if (targetIndex < PRODUCTS.length - 1) {
-            timers.push(setTimeout(advance, HOLD_MS))
-          }
+          busy = false
+          const next = pending
+          pending = null
+          if (next != null && next !== targetIndex && !bgFailed(next)) advance(next)
+          else holdTimer = setTimeout(() => advance(), HOLD_MS)
         },
       })
 
       if (reduce) {
-        tl.to(bgFront, { opacity: 0, duration: 0.4 }, 0).to(bgBack, { opacity: 1, duration: 0.4 }, 0)
-        if (itemsFront) tl.to(itemsFront, { opacity: 0, duration: 0.4 }, 0)
-        if (itemsOk && itemsBack) tl.to(itemsBack, { opacity: 1, duration: 0.4 }, 0)
-        if (bottleFront) tl.to(bottleFront, { opacity: 0, duration: 0.4 }, 0)
-        if (bottleOk && bottleBack) tl.to(bottleBack, { opacity: 1, duration: 0.4 }, 0)
+        const fade = (el, opacity) => tl.to(el, { opacity, duration: 0.4 }, 0)
+        fade(bg[f], 0)
+        fade(bg[b], 1)
+        fade(items[f], 0)
+        if (itemsOk) fade(items[b], 1)
+        fade(bottle[f], 0)
+        if (bottleOk) fade(bottle[b], 1)
       } else {
         const D = TRANSITION_S
-        // Background: crossfade with a faint vertical drift — same slide
-        // language as the rest of the scene, kept small since it's full-bleed.
-        tl.to(bgFront, { opacity: 0, y: -BG_DRIFT_Y, duration: D, ease: 'power2.inOut' }, 0)
-        tl.fromTo(bgBack, { opacity: 0, y: BG_DRIFT_Y }, { opacity: 1, y: 0, duration: D, ease: 'power2.inOut' }, 0)
-
-        // Items: slides out downward just after the bottle starts leaving;
-        // the next flavour's items slide down into place ahead of its bottle.
-        if (itemsFront) {
-          tl.to(itemsFront, { opacity: 0, y: ITEMS_EXIT_Y, duration: D * 0.5, ease: 'power2.in' }, D * 0.06)
-        }
-        if (itemsOk && itemsBack) {
-          tl.fromTo(itemsBack, { opacity: 0, y: ITEMS_ENTER_Y }, { opacity: 1, y: 0, duration: D * 0.55, ease: 'power2.out' }, D * 0.12)
-        }
-
-        // Bottle: the through-line of the whole sequence. The outgoing
-        // bottle continues downward and fades; the incoming one arrives
-        // from the top — the same direction it slid in on the first reveal.
-        if (bottleFront) {
-          tl.to(bottleFront, { opacity: 0, y: BOTTLE_EXIT_Y, duration: D * 0.55, ease: 'power2.in' }, 0)
-        }
-        if (bottleOk && bottleBack) {
-          tl.fromTo(bottleBack, { opacity: 0, y: BOTTLE_ENTER_Y }, { opacity: 1, y: 0, duration: D * 0.6, ease: 'power2.out' }, D * 0.18)
-        }
+        // Background: crossfade with a faint vertical drift.
+        tl.to(bg[f], { opacity: 0, y: -BG_DRIFT_Y, duration: D, ease: 'power2.inOut' }, 0)
+        tl.fromTo(bg[b], { opacity: 0, y: BG_DRIFT_Y }, { opacity: 1, y: 0, duration: D, ease: 'power2.inOut' }, 0)
+        // Items: slide out just after the bottle starts leaving; the next items slide in ahead of their bottle.
+        tl.to(items[f], { opacity: 0, y: ITEMS_EXIT_Y, duration: D * 0.5, ease: 'power2.in' }, D * 0.06)
+        if (itemsOk) tl.fromTo(items[b], { opacity: 0, y: ITEMS_ENTER_Y }, { opacity: 1, y: 0, duration: D * 0.55, ease: 'power2.out' }, D * 0.12)
+        // Bottle: the outgoing one continues downward and fades; the incoming one arrives from the top.
+        tl.to(bottle[f], { opacity: 0, y: BOTTLE_EXIT_Y, duration: D * 0.55, ease: 'power2.in' }, 0)
+        if (bottleOk) tl.fromTo(bottle[b], { opacity: 0, y: BOTTLE_ENTER_Y }, { opacity: 1, y: 0, duration: D * 0.6, ease: 'power2.out' }, D * 0.18)
       }
     }
 
-    timers.push(setTimeout(advance, HOLD_MS))
+    holdTimer = setTimeout(() => advance(), HOLD_MS)
+
+    // Carousel click: jump to slide i, then autoplay carries on from there. A click mid-transition is queued.
+    goTo.current = (i) => {
+      if (i >= PRODUCTS.length || bgFailed(i)) return
+      if (busy) {
+        pending = i
+        return
+      }
+      if (i === productIndex.current) return
+      clearTimeout(holdTimer)
+      advance(i)
+    }
 
     return () => {
       cancelled = true
-      timers.forEach(clearTimeout)
+      clearTimeout(holdTimer)
+      goTo.current = null
     }
   }, [uiReady])
 
-  /* ─── subtle parallax on whichever layers are currently front (desktop only) ─── */
+  /* ─── subtle parallax on whichever layers are currently front (desktop mouse only) ─── */
   useEffect(() => {
-    if (!uiReady) return
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const section = sectionRef.current
-    if (reduce || !section) return
+    if (!uiReady || reducedMotion() || !section) return
 
-    const bottleLayers = [bottleARef.current, bottleBRef.current].filter(Boolean)
-    const itemsLayers = [itemsARef.current, itemsBRef.current].filter(Boolean)
-    if (!bottleLayers.length) return
-
+    const { items, bottle } = layers.current
     const ac = new AbortController()
-    const makeQuickies = (el) => ({
-      el,
+    const quick = (el) => ({
       mx: gsap.quickTo(el, 'x', { duration: 0.9, ease: 'power3.out' }),
       my: gsap.quickTo(el, 'y', { duration: 0.9, ease: 'power3.out' }),
     })
-    const bottleQuickies = bottleLayers.map(makeQuickies)
-    const itemsQuickies = itemsLayers.map(makeQuickies)
+    const bottleQ = bottle.map(quick)
+    const itemsQ = items.map(quick)
 
     section.addEventListener(
       'pointermove',
@@ -415,26 +360,22 @@ export default function Hero() {
         const r = section.getBoundingClientRect()
         const nx = (e.clientX - r.left) / r.width - 0.5
         const ny = (e.clientY - r.top) / r.height - 0.5
-        // Bottle moves most (~±3px), items a little less (~±2px) — items
-        // are a supporting layer, so they should trail the bottle's depth
-        // rather than match it.
-        const activeBottle = frontIsA.current ? bottleQuickies[0] : bottleQuickies[1]
-        const activeItems = frontIsA.current ? itemsQuickies[0] : itemsQuickies[1]
-        activeBottle?.mx(nx * 6)
-        activeBottle?.my(ny * 4)
-        activeItems?.mx(nx * 4)
-        activeItems?.my(ny * 2.5)
+        // Bottle moves most (~±3px), items a little less (~±2px) — items trail the bottle's depth.
+        const i = frontIsA.current ? 0 : 1
+        bottleQ[i].mx(nx * 6)
+        bottleQ[i].my(ny * 4)
+        itemsQ[i].mx(nx * 4)
+        itemsQ[i].my(ny * 2.5)
       },
       { signal: ac.signal }
     )
     section.addEventListener(
       'pointerleave',
-      () => {
-        ;[...bottleQuickies, ...itemsQuickies].forEach((q) => {
+      () =>
+        [...bottleQ, ...itemsQ].forEach((q) => {
           q.mx(0)
           q.my(0)
-        })
-      },
+        }),
       { signal: ac.signal }
     )
 
@@ -463,76 +404,26 @@ export default function Hero() {
         aria-hidden="true"
       />
 
-      {/* z-index 1: background layers A/B — reused across all three flavours */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        ref={bgARef}
-        className="absolute inset-0 h-full w-full object-cover"
-        style={{ zIndex: 1, opacity: 0 }}
-        src={PRODUCTS[0].background}
-        alt=""
-        onError={() => {
-          bgAFailed.current = true
-        }}
-      />
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img ref={bgBRef} className="absolute inset-0 h-full w-full object-cover" style={{ zIndex: 1, opacity: 0 }} alt="" />
-
-      {/* z-index 2: ingredient layers A/B — height-driven (like the bottle),
-          NOT full-bleed, sitting behind the bottle and in front of the
-          background, so the halo stays visually secondary to the product */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        ref={itemsARef}
-        className="absolute"
-        style={{
-          zIndex: 2,
-          opacity: 0,
-          left: '50%',
-          width: 'auto',
-          top: PRODUCTS[0].itemsPosition.top,
-          height: PRODUCTS[0].itemsPosition.height,
-        }}
-        src={PRODUCTS[0].items}
-        alt=""
-        onError={() => {
-          itemsAFailed.current = true
-        }}
-      />
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        ref={itemsBRef}
-        className="absolute"
-        style={{
-          zIndex: 2,
-          opacity: 0,
-          left: '50%',
-          width: 'auto',
-          top: PRODUCTS[0].itemsPosition.top,
-          height: PRODUCTS[0].itemsPosition.height,
-        }}
-        alt=""
-      />
-
-      {/* z-index 3: bottle layers A/B */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        ref={bottleARef}
-        className="absolute"
-        style={{ zIndex: 3, opacity: 0, left: '50%', width: 'auto', top: PRODUCTS[0].position.top, height: PRODUCTS[0].position.height }}
-        src={PRODUCTS[0].bottle}
-        alt={PRODUCTS[0].alt}
-        onError={() => {
-          bottleAFailed.current = true
-        }}
-      />
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        ref={bottleBRef}
-        className="absolute"
-        style={{ zIndex: 3, opacity: 0, left: '50%', width: 'auto', top: PRODUCTS[0].position.top, height: PRODUCTS[0].position.height }}
-        alt=""
-      />
+      {/* z-index 1–3: background, items (ingredient halo) and bottle layers, sets A and B */}
+      {LAYERS.flatMap(({ k, cls, style, src, alt }) =>
+        [0, 1].map((i) => (
+          <img
+            key={k + i}
+            ref={setRef(layers.current[k], i)}
+            className={cls}
+            style={{ ...style, opacity: 0 }}
+            src={i === 0 ? src : undefined}
+            alt={i === 0 ? alt : ''}
+            onError={
+              i === 0
+                ? () => {
+                    failedA.current[k] = true
+                  }
+                : undefined
+            }
+          />
+        ))
+      )}
 
       {/* z-index 4: readability overlay — subtle, left side only, hero stays bright */}
       <div
@@ -541,43 +432,74 @@ export default function Hero() {
         style={{ zIndex: 4, background: 'linear-gradient(100deg, rgba(0,20,13,0.45) 0%, rgba(0,20,13,0.12) 42%, transparent 62%)' }}
       />
 
+      {/* z-index 9: carousel icons — right side, vertically centred, md+ only; follows the active slide, click an icon to jump to it */}
+      <div
+        ref={carouselRef}
+        className="pointer-events-none absolute inset-y-0 hidden items-center md:flex"
+        style={{ zIndex: 9, right: 'clamp(16px, 7vw, 120px)', opacity: 0 }}
+      >
+        <div className="flex flex-col items-center" style={{ gap: 'clamp(14px, 1.6vw, 22px)' }}>
+          {CAROUSEL_ICONS.map((icon, i) => (
+            <button
+              key={icon.id}
+              type="button"
+              ref={setRef(pillRefs.current, i)}
+              onClick={() => goTo.current?.(i)}
+              disabled={i >= PRODUCTS.length}
+              aria-label={`Show ${icon.id}`}
+              className="pointer-events-auto relative grid cursor-pointer place-items-center overflow-hidden p-0 transition-[filter] duration-300 hover:brightness-125 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#BEF264] disabled:cursor-default"
+              style={{
+                width: 'clamp(56px, 4.6vw, 76px)',
+                aspectRatio: '1 / 1.45',
+                borderRadius: 28,
+                backgroundColor: 'rgba(10,26,18,0.5)',
+                border: '1px solid rgba(247,232,200,0.4)',
+                backdropFilter: 'blur(14px) saturate(140%)',
+                WebkitBackdropFilter: 'blur(14px) saturate(140%)',
+                boxShadow: '0 10px 26px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.22)',
+                opacity: 0.9,
+              }}
+            >
+              <img src={icon.src} alt="" className="h-[78%] w-[78%] object-contain" style={{ filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.4))' }} draggable={false} />
+              <span
+                ref={setRef(barRefs.current, i)}
+                className="absolute"
+                style={{ left: 14, right: 14, bottom: 8, height: 3, borderRadius: 3, background: LIME, boxShadow: '0 0 8px rgba(190,242,100,0.9)', transformOrigin: 'left center', transform: 'scaleX(0)', opacity: 0 }}
+              />
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* z-index 10: hero content — stable across flavour changes */}
       <div ref={copyRef} className="relative flex h-full min-h-[100svh] max-w-[640px] flex-col justify-center px-6 lg:px-20" style={{ zIndex: 10 }}>
-        <p
-          data-eyebrow
-          className="flex items-center gap-3 text-[15px] font-medium tracking-wide opacity-0 sm:text-[16px]"
-          style={{ color: 'rgba(247,232,200,0.86)', transform: 'translateY(18px)' }}
-        >
-          <span className="h-2.5 w-2.5 rounded-full" style={{ background: '#BEF264' }} />
+        <p data-eyebrow className="flex items-center gap-3 text-[15px] font-medium tracking-wide opacity-0 sm:text-[16px]" style={{ color: CREAM, ...RISE }}>
+          <span className="h-2.5 w-2.5 rounded-full" style={{ background: LIME }} />
           Introducing Plain Culture
         </p>
 
         <h2
           data-headline
           className="mt-6 text-[clamp(3rem,7.5vw,5.75rem)] leading-[1.04] tracking-[-0.02em] opacity-0"
-          style={{ fontFamily: 'var(--font-display), Georgia, serif', fontWeight: 600, color: '#F7E8C8', transform: 'translateY(18px)' }}
+          style={{ fontFamily: 'var(--font-display), Georgia, serif', fontWeight: 600, color: '#F7E8C8', ...RISE }}
         >
           Just the Good Stuff.
         </h2>
 
-        <p
-          data-desc
-          className="mt-6 max-w-[46ch] text-[17px] font-light leading-[1.75] opacity-0 sm:text-[19px]"
-          style={{ color: 'rgba(247,232,200,0.86)', transform: 'translateY(18px)' }}
-        >
+        <p data-desc className="mt-6 max-w-[46ch] text-[17px] font-light leading-[1.75] opacity-0 sm:text-[19px]" style={{ color: CREAM, ...RISE }}>
           Real fruit, plainly done. No shortcuts, no additives — just the ingredient at its best, bottled.
         </p>
 
-        <div data-cta className="mt-9 opacity-0" style={{ transform: 'translateY(18px)' }}>
+        <div data-cta className="mt-9 opacity-0" style={RISE}>
           <a
             href="/products"
             className="group relative inline-flex items-center gap-5 overflow-hidden rounded-full py-2 pl-8 pr-2 text-[17px] font-semibold transition-shadow duration-700 hover:shadow-2xl"
-            style={{ background: '#BEF264', color: '#14201A' }}
+            style={{ background: LIME, color: INK }}
           >
             <span className="relative z-10">Explore the range</span>
             <span
               className="relative z-10 grid h-12 w-12 place-items-center rounded-full transition-transform duration-500 ease-out group-hover:-rotate-45"
-              style={{ background: '#14201A', color: '#BEF264' }}
+              style={{ background: INK, color: LIME }}
             >
               <svg width="20" height="20" viewBox="0 0 16 16" fill="none" aria-hidden>
                 <path d="M2 8H14M14 8L9 3M14 8L9 13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />

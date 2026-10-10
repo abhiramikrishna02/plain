@@ -4,7 +4,7 @@
  * components/About.jsx — Plain Culture "Why Plain?" section
  *
  * Stacked, in order: title → text + button → banner image → the four label promises
- * → three flavour features (guava, ragi, carrot).
+ * → three flavour features (muskmelon & banana, ragi, carrot).
  * Motion: the banner and each flavour photo slowly settle (zoom-out) inside their frame
  * as they scroll in. Skipped for reduced motion.
  *
@@ -40,20 +40,20 @@ const DISPLAY = { fontFamily: 'var(--font-display), Georgia, serif', fontWeight:
 // blocks feel hand-placed rather than stamped from the same template
 const FLAVOUR_FEATURES = [
   {
-    key: 'guava',
-    image: '/aboutguava.png',
-    alt: 'Plain guava milk shake bottle surrounded by fresh guava',
-    halo: '#F3C2CC',
+    key: 'muskmelon-banana',
+    image: '/about3.png',
+    alt: 'Plain muskmelon and banana milk shake surrounded by fresh fruit',
+    halo: '#F5D9A8',
     tilt: -3,
-    heading: 'Guava, kept simple',
+    heading: 'Muskmelon & banana, made creamy',
     story: [
-      'Every bottle starts with guava picked ripe off the tree, pink all the way through and sweet enough on its own.',
-      'We blend it whole into cold milk and stop there. No purée concentrate, no thickeners, no shortcuts. Just fruit doing what fruit does best.',
+      'Ripe muskmelon brings a mellow, sunlit sweetness; banana adds a naturally creamy finish to every sip.',
+      'Blended with cool milk for a smooth, satisfying shake, with the familiar goodness of fruit in every bottle.',
     ],
   },
   {
     key: 'ragi',
-    image: '/aboutragi.png',
+    image: '/about2.png',
     alt: 'Plain ragi milk shake bottle surrounded by ragi grain',
     halo: '#E3B968',
     tilt: 3,
@@ -65,7 +65,7 @@ const FLAVOUR_FEATURES = [
   },
   {
     key: 'carrot',
-    image: '/aboutcarrot.png',
+    image: '/about1.png',
     alt: 'Plain carrot milk shake bottle surrounded by fresh carrots',
     halo: '#F0AE64',
     tilt: -4,
@@ -180,6 +180,23 @@ export default function About() {
           }
         )
       })
+
+      const arrowStory = $('[data-arrowroot-story]')[0]
+      if (arrowStory) {
+        const reveal = (target, from, to) =>
+          gsap.fromTo(target, from, {
+            ...to,
+            ease: 'power2.out',
+            duration: 0.8,
+            clearProps: 'transform,opacity,visibility',
+            scrollTrigger: { trigger: arrowStory, start: 'top 75%', once: true },
+          })
+
+        reveal('[data-arrow-title]', { autoAlpha: 0, y: 18 }, { autoAlpha: 1, y: 0 })
+        reveal('[data-arrow-copy]', { autoAlpha: 0, y: 14 }, { autoAlpha: 1, y: 0, delay: 0.12 })
+        reveal('[data-arrow-closing]', { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, delay: 0.2 })
+        reveal('[data-arrow-art]', { autoAlpha: 0, y: 24 }, { autoAlpha: 1, y: 0, delay: 0.18 })
+      }
     })
 
     return () => mm.revert()
@@ -230,7 +247,7 @@ export default function About() {
         >
           <div data-about-img className="absolute inset-0 will-change-transform">
             <Image
-              src="/banner.png"
+              src="/banner1.png"
               alt="Plain Culture milk shake bottles"
               fill
               sizes="(min-width: 1536px) 1376px, 100vw"
@@ -262,6 +279,97 @@ export default function About() {
           ))}
         </div>
       </div>
+
+      <section
+        data-arrowroot-story
+        aria-labelledby="arrowroot-story-title"
+        className="relative isolate w-full overflow-hidden pt-16 sm:pt-20 lg:pt-24"
+        style={{ backgroundColor: CREAM, color: INK }}
+      >
+        <div className="relative z-10 mx-auto max-w-[900px] px-6 text-center sm:px-8">
+          <p
+            className="mb-5 text-[12px] font-semibold uppercase tracking-[0.22em] sm:text-[13px]"
+            style={{ color: INK }}
+          >
+            PLAIN ARROWROOT JUICE
+          </p>
+          <h2
+            id="arrowroot-story-title"
+            data-arrow-title
+            className="text-[clamp(2.5rem,6vw,5rem)] leading-[1.06] tracking-tight"
+            style={DISPLAY}
+          >
+            Goodness, Rooted in Nature.
+          </h2>
+          <p
+            data-arrow-copy
+            className="mx-auto mt-6 max-w-[720px] text-[clamp(16px,1.3vw,19px)] font-light leading-[1.75] sm:mt-7"
+          >
+            Discover a refreshing take on arrowroot, a traditional root ingredient reimagined for everyday enjoyment. PLAIN Arrowroot Juice brings together a simple concept, a distinctive ingredient, and a ready-to-drink format that fits effortlessly into your day.
+          </p>
+          <p
+            data-arrow-copy
+            className="mx-auto mt-4 max-w-[720px] text-[clamp(16px,1.3vw,19px)] font-light leading-[1.75]"
+          >
+            Inspired by nature and guided by simplicity, it reflects our belief that good choices don't need to be complicated. Just open, enjoy, and keep things PLAIN.
+          </p>
+        </div>
+
+        <div className="relative z-10 mx-auto mt-10 max-w-[1080px] px-6 sm:mt-12 sm:px-8">
+          <h3 className="text-center text-[12px] font-semibold uppercase tracking-[0.22em] sm:text-[13px]">
+            OUR APPROACH
+          </h3>
+          <ul className="mt-5 grid gap-x-10 sm:mt-7 sm:grid-cols-2 lg:gap-x-16">
+            <li className="border-t border-[#004C33]/20 py-4 sm:py-5">
+              <h4 className="text-[18px] font-semibold sm:text-[20px]">Rooted in Nature</h4>
+              <p className="mt-1 text-[15px] font-light leading-relaxed sm:text-[16px]">Inspired by the humble arrowroot and its traditional use.</p>
+            </li>
+            <li className="border-t border-[#004C33]/20 py-4 sm:py-5">
+              <h4 className="text-[18px] font-semibold sm:text-[20px]">Ready to Enjoy</h4>
+              <p className="mt-1 text-[15px] font-light leading-relaxed sm:text-[16px]">A convenient, ready-to-drink beverage for everyday moments.</p>
+            </li>
+            <li className="border-t border-[#004C33]/20 py-4 sm:py-5">
+              <h4 className="text-[18px] font-semibold sm:text-[20px]">No Added Sugar</h4>
+              <p className="mt-1 text-[15px] font-light leading-relaxed sm:text-[16px]">Made without added sugar, as stated on the product label.</p>
+            </li>
+            <li className="border-t border-[#004C33]/20 py-4 sm:py-5">
+              <h4 className="text-[18px] font-semibold sm:text-[20px]">100% Clean Label</h4>
+              <p className="mt-1 text-[15px] font-light leading-relaxed sm:text-[16px]">A clear, straightforward product identity.</p>
+            </li>
+          </ul>
+        </div>
+
+        <p
+          data-arrow-closing
+          className="relative z-10 mx-auto mt-2 px-6 text-center text-[clamp(18px,1.6vw,23px)] leading-relaxed sm:mt-3"
+          style={{ ...DISPLAY, fontWeight: 500 }}
+        >
+          From the root to your routine. Simply PLAIN.
+        </p>
+
+        <div data-arrow-art className="relative mt-2 w-full sm:mt-4 lg:mt-6">
+          <Image
+            src="/arrowfloor.png"
+            alt="PLAIN Arrowroot Juice with arrowroot roots, fresh leaves, and a glass of juice"
+            width={2171}
+            height={724}
+            sizes="100vw"
+            loading="eager"
+            className="hidden h-auto w-full object-contain md:block"
+            draggable={false}
+          />
+          <Image
+            src="/arrowrootfloormob.png"
+            alt="PLAIN Arrowroot Juice with arrowroot roots, fresh leaves, and a glass of juice"
+            width={941}
+            height={1672}
+            sizes="100vw"
+            loading="eager"
+            className="block h-auto w-full object-contain md:hidden"
+            draggable={false}
+          />
+        </div>
+      </section>
     </section>
   )
 }
