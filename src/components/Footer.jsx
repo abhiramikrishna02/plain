@@ -25,7 +25,7 @@ const CONTACT_LINKS = [
 
 export default function Footer() {
 	return (
-		<footer className="bg-[#1a1a1a] text-[#F7E8C8]">
+		<footer className="bg-[#00563F] text-[#F7E8C8]">
 			<div className="mx-auto grid w-full max-w-[1536px] gap-12 px-6 py-12 sm:px-8 md:grid-cols-2 lg:grid-cols-4 lg:px-20">
 				<div>
 					<Image

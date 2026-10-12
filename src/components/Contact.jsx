@@ -14,7 +14,7 @@ export default function Contact() {
 	return (
 		<section
 			id="contact"
-			className="bg-[#F7E8C8] px-6 py-20 text-[#1A1A1A] sm:px-8 lg:px-20 lg:py-28"
+			className="bg-[#F7E8C8] px-6 py-20 text-[#00563F] sm:px-8 lg:px-20 lg:py-28"
 			aria-labelledby="contact-title"
 		>
 			<div className="mx-auto grid w-full max-w-[1536px] gap-14 lg:grid-cols-[0.8fr_1.2fr] lg:items-start lg:gap-24">

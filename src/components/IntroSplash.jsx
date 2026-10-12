@@ -10,7 +10,10 @@ export default function IntroSplash() {
   useEffect(() => {
     // Hold for 2s, then slide up. Unmount only after the slide has finished (2000 + 900ms + buffer).
     const exitTimer = window.setTimeout(() => setIsExiting(true), 2000);
-    const removeTimer = window.setTimeout(() => setIsMounted(false), 2950);
+    const removeTimer = window.setTimeout(() => {
+      setIsMounted(false);
+      window.dispatchEvent(new Event("intro-loader-complete"));
+    }, 2950);
 
     return () => {
       window.clearTimeout(exitTimer);

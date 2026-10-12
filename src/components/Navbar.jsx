@@ -6,6 +6,14 @@ import Link from "next/link";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+  const [isIntroComplete, setIsIntroComplete] = useState(false);
+
+  useEffect(() => {
+    const handleIntroComplete = () => setIsIntroComplete(true);
+    window.addEventListener("intro-loader-complete", handleIntroComplete);
+    return () => window.removeEventListener("intro-loader-complete", handleIntroComplete);
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -14,6 +22,26 @@ export default function Navbar() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  useEffect(() => {
+    let previousScrollY = window.scrollY;
+
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      if (currentScrollY <= 0 || currentScrollY < previousScrollY) {
+        setIsVisible(true);
+      } else if (currentScrollY > previousScrollY) {
+        setIsVisible(false);
+        setIsMenuOpen(false);
+      }
+
+      previousScrollY = currentScrollY;
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const handleNavigation = (event) => {
@@ -38,16 +66,17 @@ export default function Navbar() {
 
   return (
     <header
-      className="fixed inset-x-0 top-0 z-[100] w-full bg-transparent text-white"
+      aria-hidden={!isIntroComplete || !isVisible}
+      className={`fixed inset-x-0 top-0 z-[100] w-full bg-transparent text-white transition-transform duration-300 ${isIntroComplete && isVisible ? "translate-y-0" : "-translate-y-full pointer-events-none"}`}
     >
       <nav className="mx-auto flex h-20 w-full max-w-[1536px] items-center justify-between px-5 sm:px-8 lg:px-20" aria-label="Main navigation">
         <Link href="#home" onClick={handleNavigation} className="shrink-0" aria-label="Plain Culture home">
           <Image
-            src="/logo.png"
+            src="/navlogo.png"
             alt="Plain Culture"
             width={144}
             height={70}
-            className="h-14 w-auto object-contain"
+            className="h-16 w-auto object-contain"
             priority
           />
         </Link>
