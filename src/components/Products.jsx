@@ -43,7 +43,7 @@ const PRODUCTS = [
 const STEP_VH = 0.55 // mobile: scroll distance per slide (× viewport height) — raise for slower, lower for faster
 const HOLD = 0.6 // mobile: extra scroll the final "See all" slide stays pinned
 const D_PACE = 1.0 // desktop: scroll distance per pixel of sideways travel — raise for slower, lower for faster
-const CARD_W = 'min(26vw, 34vh)' // desktop card width — tied to height so the pinned screen never overflows
+const CARD_W = 'min(26vw, 30vh)' // desktop card width — scales with both viewport width and height
 const DISPLAY = { fontFamily: 'var(--font-display), Georgia, serif', fontWeight: 600 }
 const pad = (n) => String(n).padStart(2, '0')
 
@@ -253,7 +253,7 @@ export default function Products() {
 
             {/* stage: fixed disc + bottle box (bottle is static inside this box, swaps instantly) */}
             <div
-              className="relative mt-3 min-h-[240px] flex-1 select-none overflow-hidden"
+              className="relative mt-3 min-h-[min(240px,35svh)] flex-1 select-none overflow-hidden"
               style={{ WebkitTouchCallout: 'none' }}
               onPointerDown={startHold}
               onPointerUp={endHold}
@@ -312,7 +312,7 @@ export default function Products() {
             </div>
 
             {/* name + one line */}
-            <div className="relative mt-2 h-[16svh] min-h-[110px]">
+            <div className="relative mt-2 h-[14svh] min-h-[76px]">
               {PRODUCTS.map((p, i) => (
                 <div
                   key={`${p.name}-${i}`}
@@ -333,9 +333,9 @@ export default function Products() {
 
       {/* ═════════════ DESKTOP — pinned carousel ═════════════ */}
       <div className="hidden lg:block">
-        <div data-d-pin className="relative flex h-screen min-h-[640px] w-full flex-col justify-center overflow-hidden py-10">
+        <div data-d-pin className="relative flex h-[100svh] min-h-[min(640px,100svh)] w-full flex-col justify-center overflow-hidden py-6 sm:py-8">
           {/* title */}
-          <div className="mx-auto flex w-full max-w-[1536px] items-end justify-between gap-12 px-8 xl:px-20">
+          <div className="mx-auto flex w-full max-w-[1536px] flex-col items-start gap-3 px-5 sm:px-8 xl:flex-row xl:items-end xl:justify-between xl:gap-12 xl:px-20">
             <h2 className="text-[clamp(2.75rem,5.2vw,4.75rem)] leading-[1.04] tracking-tight" style={DISPLAY}>
               Simple milk shakes,
               <br />
@@ -362,16 +362,16 @@ export default function Products() {
           </div>
 
           {/* carousel — viewport clips, track slides */}
-          <div className="mt-10 w-full overflow-hidden motion-reduce:overflow-x-auto">
-            <div data-d-inner className="mx-auto w-full max-w-[1536px] px-8 xl:px-20">
-              <div data-d-track className="flex w-max items-stretch gap-4 will-change-transform xl:gap-6">
+          <div className="mt-6 w-full overflow-hidden motion-reduce:overflow-x-auto sm:mt-8">
+            <div data-d-inner className="mx-auto w-full max-w-[1536px] px-5 sm:px-8 xl:px-20">
+              <div data-d-track className="flex w-max items-stretch gap-3 will-change-transform sm:gap-4 xl:gap-6">
                 {PRODUCTS.map((p, i) => {
                   const onLime = i % 2 === 0 // alternating lime / cream
                   return (
                     <article
                       key={`${p.name}-${i}`}
                       className="group relative shrink-0 overflow-hidden rounded-[1.75rem] p-4 pb-6 xl:rounded-[2rem] xl:p-6 xl:pb-7"
-                      style={{ width: CARD_W, minWidth: 280, background: onLime ? LIME : CREAM, border: `2px solid ${onLime ? LIME : EDGE}` }}
+                      style={{ width: CARD_W, background: onLime ? LIME : CREAM, border: `2px solid ${onLime ? LIME : EDGE}` }}
                     >
                       {/* bottle sits fully inside the box */}
                       <div data-d-bottle className="relative aspect-[4/5] w-full">
@@ -405,7 +405,7 @@ export default function Products() {
                 })}
 
                 {/* end of the row */}
-                <div className="flex shrink-0 flex-col items-center justify-center text-center" style={{ width: CARD_W, minWidth: 280 }}>
+                <div className="flex shrink-0 flex-col items-center justify-center text-center" style={{ width: CARD_W }}>
                   <h3 className="text-[clamp(2rem,3vw,3rem)] leading-[1.05] tracking-tight" style={DISPLAY}>
                     Full range
                   </h3>
@@ -418,7 +418,7 @@ export default function Products() {
           </div>
 
           {/* progress */}
-          <div className="mx-auto mt-8 w-full max-w-[1536px] px-8 motion-reduce:hidden xl:px-20" aria-hidden>
+          <div className="mx-auto mt-5 w-full max-w-[1536px] px-5 motion-reduce:hidden sm:mt-7 sm:px-8 xl:px-20" aria-hidden>
             <div className="h-[3px] w-full overflow-hidden rounded-full" style={{ background: EDGE }}>
               <div data-d-bar className="h-full origin-left rounded-full" style={{ background: INK }} />
             </div>
