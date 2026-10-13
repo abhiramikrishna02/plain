@@ -4,13 +4,12 @@
 /**
  * components/Hero.jsx — Plain Culture hero
  *
- * Hero.mp4 plays once and dissolves into flavour 1 → hold → slide transition into flavour 2 → hold → flavour 3 → hold → loop.
+ * hero1.mp4 plays once and dissolves into the product slides → hold → slide transitions → loop.
  * Two layer sets (bg / items / bottle, A and B) ping-pong: the front set shows the current flavour, the back set preloads the
  * next one and crossfades in, then the roles swap. Depth: video → bg → items → bottle → readability overlay → carousel → text.
  * All motion is a plain vertical slide + fade. The right-side carousel icons follow the active slide (icon N = PRODUCTS[N]) and are clickable to jump to a slide.
  *
- * /public assets: Hero.mp4, bg/items/bottle.png, bg1/items1/bottle1.png, bg2/items2/bottle2.png,
- *                 arrowroot0.png, carrot0.png, dates0.png, guava0.png
+ * /public assets: hero1.mp4, cdbg.png, cd.png / 4.png, mb.png / 2.png, d.png / 1.png
  * NOTE: if the flavour-3 items file is literally named "items.2png", change PRODUCTS[2].items to match.
  * TUNING: POSITION / ITEMS_POSITION are measured against flavour 1; flavours 2 and 3 reuse them as a starting guess — give a
  * product its own literal `position` / `itemsPosition` (optional `mobile` override under 768px) once tuned.
@@ -41,14 +40,14 @@ const INK = '#14201A'
 const CREAM = 'rgba(247,232,200,0.86)'
 const RISE = { transform: 'translateY(18px)' }
 
-// Matches the last frame of Hero.mp4; the items composition bleeds past the top and bottom of the frame.
-const POSITION = { top: '17%', height: 'clamp(400px, 51vh, 740px)', rotate: 0 }
+// Product bottles stay centred; ingredient compositions use the wider overlay sizing.
+const POSITION = { top: '0%', height: 'clamp(500px, 90vh, 1120px)', rotate: 0 }
 const ITEMS_POSITION = { top: '-4%', height: 'clamp(680px, 104vh, 1080px)' }
 
 const PRODUCTS = [
-  { id: 'orange', background: '/bg.png', items: '/items.png', bottle: '/bottle.png', alt: 'Plain Culture — Orange', position: POSITION, itemsPosition: ITEMS_POSITION },
-  { id: 'guava', background: '/bg1.png', items: '/items1.png', bottle: '/bottle1.png', alt: 'Plain Culture — Guava', position: POSITION, itemsPosition: ITEMS_POSITION },
-  { id: 'grape', background: '/bg2.png', items: '/items2.png', bottle: '/bottle2.png', alt: 'Plain Culture — Grape', position: POSITION, itemsPosition: ITEMS_POSITION },
+  { id: 'dates', background: '/cdbg.png', items: '/cd.png', bottle: '/4.png', alt: 'Plain Culture — Dates', position: POSITION, itemsPosition: ITEMS_POSITION },
+  { id: 'millet', background: '/cdbg.png', items: '/mb.png', bottle: '/2.png', alt: 'Plain Culture — Millet', position: POSITION, itemsPosition: ITEMS_POSITION },
+  { id: 'fruit', background: '/cdbg.png', items: '/d.png', bottle: '/1.png', alt: 'Plain Culture — Fruit', position: POSITION, itemsPosition: ITEMS_POSITION },
 ]
 
 // Right-side carousel icons, top to bottom. Icon N is highlighted while PRODUCTS[N] is showing.
@@ -396,7 +395,7 @@ export default function Hero() {
         ref={videoRef}
         className="absolute inset-0 h-full w-full object-cover"
         style={{ zIndex: 0 }}
-        src="/Hero.mp4"
+        src="/hero1.mp4"
         autoPlay
         muted
         playsInline

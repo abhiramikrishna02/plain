@@ -43,7 +43,7 @@ const GROUND_SHADOW = 'radial-gradient(ellipse at center, rgba(0,0,0,0.38) 0%, r
    — glow strength is the 0.35 below (was 0.75). Lower = subtler, higher = brighter. */
 const SHEEN =
   'linear-gradient(110deg, rgba(255,255,255,0) 38%, rgba(255,255,255,0.35) 50%, rgba(255,255,255,0) 62%)'
-const SWEEP_AT = 2.5 // when the shared shine plays (seconds on the timeline) — after every bottle is in place
+const SWEEP_AT = 2 // when the shared shine plays (seconds on the timeline) — after every bottle is in place
 
 /* Finds the real (non-transparent) edges of a PNG so every bottle can be
    trimmed virtually — fixes uneven gaps and bottoms not sitting on one line. */
@@ -141,7 +141,7 @@ const BrandStory = () => {
       tl.fromTo(
         body,
         { y: 140, scale: 0.9, rotation: -5 },
-        { y: 0, scale: 1, rotation: 0, duration: 1.8, ease: 'expo.out' },
+        { y: 0, scale: 1, rotation: 0, duration: 1.35, ease: 'expo.out' },
         0
       )
       tl.fromTo(
@@ -151,7 +151,7 @@ const BrandStory = () => {
           opacity: 1,
           filter: 'blur(0px)',
           clipPath: 'inset(-25% -40% -25% -40%)',
-          duration: 1.3,
+          duration: 1,
           ease: 'power3.out',
           clearProps: 'filter,clipPath',
         },
@@ -160,24 +160,24 @@ const BrandStory = () => {
       tl.fromTo(
         floor,
         { opacity: 0, scaleX: 0.25 },
-        { opacity: 1, scaleX: 1, duration: 1.5, ease: 'power3.out' },
-        0.45
+        { opacity: 1, scaleX: 1, duration: 1.2, ease: 'power3.out' },
+        0.35
       )
 
       // 2) inner pair: they wait hidden behind the centre bottle, then slide out sideways
-      tl.set(rank(2), { opacity: 1 }, 1.2)
-      tl.fromTo(rank(2), { x: fromCentre }, { x: 0, duration: 1.1, ease: 'power3.out' }, '<')
+      tl.set(rank(2), { opacity: 1 }, 1)
+      tl.fromTo(rank(2), { x: fromCentre }, { x: 0, duration: 0.85, ease: 'power3.out' }, '<')
 
       // 3) outer pair: also start behind the centre, and slide out from behind the inner pair
-      tl.set(rank(3), { opacity: 1 }, '<0.35')
-      tl.fromTo(rank(3), { x: fromCentre }, { x: 0, duration: 1.2, ease: 'power3.out' }, '<')
+      tl.set(rank(3), { opacity: 1 }, '<0.25')
+      tl.fromTo(rank(3), { x: fromCentre }, { x: 0, duration: 0.9, ease: 'power3.out' }, '<')
 
       /* 4) one shared light sweep — all five bottles shine at exactly the same time,
             once the whole line-up is in place */
       tl.fromTo(
         allSheens,
         { backgroundPosition: '100% 0%' },
-        { backgroundPosition: '0% 0%', duration: 1.6, ease: 'power2.inOut' },
+        { backgroundPosition: '0% 0%', duration: 1.25, ease: 'power2.inOut' },
         SWEEP_AT
       )
 
