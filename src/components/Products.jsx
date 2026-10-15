@@ -165,7 +165,6 @@ export default function Products() {
         const texts = $('[data-m-text]')
         const cta = $('[data-m-cta]')[0]
         const hud = $('[data-m-hud]')[0]
-        const disc = $('[data-m-disc]')[0]
         const TOTAL = N + HOLD
         const ty = reduce ? 0 : 24
 
@@ -189,11 +188,10 @@ export default function Products() {
         // last slide: "See all" (this reveal keeps its own short animation — it's a distinct UI panel,
         // not a bottle transition)
         tl.addLabel(`p${N}`, N)
-        tl.set(layers[N - 1], { autoAlpha: 0 }, N)
-        tl.set(texts[N - 1], { autoAlpha: 0 }, N)
+        tl.to(layers[N - 1], { autoAlpha: 0, duration: 0.18, ease: 'none' }, N - 0.5)
+        tl.to(texts[N - 1], { autoAlpha: 0, duration: 0.18, ease: 'none' }, N - 0.5)
         tl.fromTo(hud, { autoAlpha: 1 }, { autoAlpha: 0, duration: 0.3, ease: 'none', immediateRender: false }, N - 0.3)
         tl.fromTo(cta, { autoAlpha: 0, y: -ty }, { autoAlpha: 1, y: 0, duration: 0.6, ease: 'power2.out' }, N - 0.2)
-        if (!reduce) tl.fromTo(disc, { scale: 1 }, { scale: 1.1, duration: 0.6, ease: 'power2.out', immediateRender: false }, N - 0.2)
         tl.to({}, { duration: HOLD }, N)
 
         ScrollTrigger.create({
@@ -272,7 +270,7 @@ export default function Products() {
               onContextMenu={(e) => e.preventDefault()}
             >
               <div aria-hidden className="absolute inset-0 flex items-center justify-center">
-                <div data-m-disc className="aspect-square w-[min(84%,42svh)] rounded-full" style={{ background: LIME }} />
+                <div data-m-disc className="aspect-square w-[min(108%,54svh)] rounded-full" style={{ background: LIME }} />
               </div>
 
               {PRODUCTS.map((p, i) => (
