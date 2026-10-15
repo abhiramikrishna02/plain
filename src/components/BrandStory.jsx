@@ -248,14 +248,14 @@ const BrandStory = () => {
         <div
           ref={stageRef}
           aria-hidden
-          className="relative mt-14 flex h-[calc(var(--bottle-h)*1.35)] flex-none items-end justify-center sm:mt-20 sm:h-[calc(var(--bottle-h)*1.18)]"
+          className="relative mt-14 flex h-[calc(var(--bottle-h)*1.35)] flex-none items-end justify-center sm:mt-20 sm:h-[calc(var(--bottle-h)*1.28)]"
           style={{ '--bottle-h': BOTTLE_H, width: 'min(100vw, 1440px)' }}
         >
           <img
             src="/banner.png"
             alt=""
             draggable={false}
-            className="pointer-events-none absolute left-1/2 top-0 h-[119%] w-[min(120vw,1800px)] max-w-none -translate-x-1/2 object-cover object-center sm:h-[136%]"
+            className="pointer-events-none absolute left-1/2 top-0 h-[119%] w-[min(120vw,1800px)] max-w-none -translate-x-1/2 object-cover object-center sm:h-[125%]"
             style={{ zIndex: 0 }}
           />
           {crops &&

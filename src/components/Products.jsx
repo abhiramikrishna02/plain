@@ -73,14 +73,23 @@ export default function Products() {
   const [mActive, setMActive] = useState(0)
   const [holding, setHolding] = useState(false) // mobile: finger is holding on the bottle
   const holdTimer = useRef(null)
+  const holdOrigin = useRef(null)
 
-  const startHold = () => {
+  const startHold = (event) => {
     clearTimeout(holdTimer.current)
+    holdOrigin.current = { x: event.clientX, y: event.clientY }
     holdTimer.current = setTimeout(() => setHolding(true), 180)
   }
   const endHold = () => {
     clearTimeout(holdTimer.current)
+    holdOrigin.current = null
     setHolding(false)
+  }
+  const moveHold = (event) => {
+    if (!holdOrigin.current) return
+    const dx = event.clientX - holdOrigin.current.x
+    const dy = event.clientY - holdOrigin.current.y
+    if (dx * dx + dy * dy > 100) endHold()
   }
 
   useEffect(() => {
@@ -231,7 +240,7 @@ export default function Products() {
         <h2 className="sr-only">Our range</h2>
 
         <div data-m-pin className="relative h-[100svh] w-full overflow-hidden">
-          <div className="mx-auto flex h-full w-full max-w-[480px] flex-col px-6 pb-8 pt-8">
+          <div className="mx-auto flex h-full w-full max-w-[480px] flex-col px-5 pb-6 pt-6 [padding-bottom:max(1.5rem,env(safe-area-inset-bottom))] [padding-top:max(1.5rem,env(safe-area-inset-top))]">
             {/* progress */}
             <div data-m-hud className="relative z-20">
               <div className="flex items-center justify-between text-[15px] font-semibold">
@@ -253,16 +262,17 @@ export default function Products() {
 
             {/* stage: fixed disc + bottle box (bottle is static inside this box, swaps instantly) */}
             <div
-              className="relative mt-3 min-h-[min(240px,35svh)] flex-1 select-none overflow-hidden"
+              className="relative mt-3 min-h-0 flex-1 select-none overflow-hidden"
               style={{ WebkitTouchCallout: 'none' }}
               onPointerDown={startHold}
+              onPointerMove={moveHold}
               onPointerUp={endHold}
               onPointerCancel={endHold}
               onPointerLeave={endHold}
               onContextMenu={(e) => e.preventDefault()}
             >
               <div aria-hidden className="absolute inset-0 flex items-center justify-center">
-                <div data-m-disc className="aspect-square w-[min(88%,46svh)] rounded-full" style={{ background: LIME }} />
+                <div data-m-disc className="aspect-square w-[min(84%,42svh)] rounded-full" style={{ background: LIME }} />
               </div>
 
               {PRODUCTS.map((p, i) => (
@@ -280,7 +290,7 @@ export default function Products() {
                     fill
                     sizes="(min-width: 1024px) 0px, 90vw"
                     className={`pointer-events-none z-0 select-none object-contain transition-all duration-500 ease-out motion-reduce:transition-none ${
-                      holding && i === mActive ? 'scale-[1.35] rotate-0 opacity-100' : '-rotate-6 scale-75 opacity-0'
+                      holding && i === mActive ? 'scale-[1.12] rotate-0 opacity-100' : '-rotate-6 scale-[0.65] opacity-0'
                     }`}
                     draggable={false}
                   />
@@ -312,7 +322,7 @@ export default function Products() {
             </div>
 
             {/* name + one line */}
-            <div className="relative mt-2 h-[14svh] min-h-[76px]">
+            <div className="relative mt-2 h-[clamp(76px,14svh,112px)] shrink-0">
               {PRODUCTS.map((p, i) => (
                 <div
                   key={`${p.name}-${i}`}
@@ -323,7 +333,7 @@ export default function Products() {
                   <h3 className="text-[clamp(2.6rem,12vw,3.4rem)] leading-[1.02] tracking-tight" style={DISPLAY}>
                     {p.name}
                   </h3>
-                  <p className="mt-2 text-[16px] font-light opacity-80">{p.text}</p>
+                  <p className="mt-2 max-w-[32ch] px-2 text-[clamp(14px,4vw,16px)] font-light opacity-80">{p.text}</p>
                 </div>
               ))}
             </div>
