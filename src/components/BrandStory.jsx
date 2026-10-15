@@ -182,7 +182,7 @@ const BrandStory = () => {
       )
 
       // plays automatically once, when the bottles scroll into view
-      ScrollTrigger.create({
+      const revealTrigger = ScrollTrigger.create({
         trigger: stageRef.current,
         start: 'top 75%',
         once: true,
@@ -191,6 +191,15 @@ const BrandStory = () => {
           tl.play(0)
         },
       })
+
+      // Bottle crops are measured asynchronously. If that finishes after the
+      // visitor has already scrolled past the trigger, don't leave the lineup
+      // hidden waiting for an onEnter event that has already happened.
+      ScrollTrigger.refresh()
+      if (revealTrigger.progress > 0) {
+        tl.invalidate()
+        tl.play(0)
+      }
     }, stageRef)
 
     return () => ctx.revert()
@@ -239,9 +248,16 @@ const BrandStory = () => {
         <div
           ref={stageRef}
           aria-hidden
-          className="relative mt-14 flex flex-none items-end justify-center sm:mt-20"
-          style={{ '--bottle-h': BOTTLE_H, height: 'var(--bottle-h)', width: 'max-content' }}
+          className="relative mt-14 flex h-[calc(var(--bottle-h)*1.35)] flex-none items-end justify-center sm:mt-20 sm:h-[calc(var(--bottle-h)*1.18)]"
+          style={{ '--bottle-h': BOTTLE_H, width: 'min(100vw, 1440px)' }}
         >
+          <img
+            src="/banner.png"
+            alt=""
+            draggable={false}
+            className="pointer-events-none absolute left-1/2 top-0 h-[119%] w-[min(120vw,1800px)] max-w-none -translate-x-1/2 object-cover object-center sm:h-[136%]"
+            style={{ zIndex: 0 }}
+          />
           {crops &&
             BOTTLES.map((b, i) => {
               const c = crops[i]

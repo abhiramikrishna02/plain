@@ -395,7 +395,7 @@ export default function Hero() {
         ref={videoRef}
         className="absolute inset-0 h-full w-full object-cover"
         style={{ zIndex: 0 }}
-        src="/hero1.mp4"
+        src="/Hero.mp4"
         autoPlay
         muted
         playsInline

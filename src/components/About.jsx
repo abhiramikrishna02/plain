@@ -156,18 +156,7 @@ export default function About() {
     const mm = gsap.matchMedia()
 
     mm.add('(prefers-reduced-motion: no-preference)', () => {
-      gsap.fromTo(
-        $('[data-about-img]'),
-        { scale: 1.15 },
-        {
-          scale: 1,
-          ease: 'none',
-          scrollTrigger: { trigger: $('[data-about-frame]')[0], start: 'top bottom', end: 'bottom 60%', scrub: true },
-        }
-      )
-
-      // same zoom-settle treatment as the banner, but pushed further so the
-      // shrink is clearly visible as each flavour photo scrolls into place
+      // Let each flavour photo settle as it scrolls into place.
       $('[data-feature-frame]').forEach((frame) => {
         const img = frame.querySelector('[data-feature-img]')
         gsap.fromTo(
@@ -224,27 +213,9 @@ export default function About() {
           </div>
         </div>
 
-        {/* image */}
-        <div
-          data-about-frame
-          className="relative mt-12 aspect-[4/3] w-full overflow-hidden rounded-[1.75rem] lg:mt-16 lg:aspect-[16/9] xl:rounded-[2rem]"
-          style={{ border: `2px solid ${EDGE}` }}
-        >
-          <div data-about-img className="absolute inset-0 will-change-transform">
-            <Image
-              src="/banner1.png"
-              alt="Plain Culture milk shake bottles"
-              fill
-              sizes="(min-width: 1536px) 1376px, 100vw"
-              className="select-none object-cover object-center"
-              draggable={false}
-            />
-          </div>
-        </div>
-
         {/* label promises */}
         <ul
-          className="relative z-10 mx-auto -mt-8 grid w-[calc(100%-2rem)] max-w-[1100px] grid-cols-2 gap-px overflow-hidden rounded-[1.75rem] border-2 shadow-[0_24px_60px_-24px_rgba(0,76,51,0.4)] sm:-mt-10 sm:w-[calc(100%-4rem)] lg:grid-cols-4 xl:rounded-[2rem]"
+          className="relative z-10 mx-auto mt-12 grid w-[calc(100%-2rem)] max-w-[1100px] grid-cols-2 gap-px overflow-hidden rounded-[1.75rem] border-2 shadow-[0_24px_60px_-24px_rgba(0,76,51,0.4)] sm:mt-16 sm:w-[calc(100%-4rem)] lg:grid-cols-4 xl:rounded-[2rem]"
           style={{ background: EDGE, borderColor: EDGE }}
         >
           {PROMISES.map((word) => (
