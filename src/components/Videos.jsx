@@ -118,7 +118,7 @@ function VideoModal({ item, onClose }) {
       <div
         onClick={(e) => e.stopPropagation()}
         className={`flex flex-col gap-3 transition-transform duration-300 ${show ? 'scale-100' : 'scale-95'}`}
-        style={{ width: 'min(92vw, calc(80vh * 9 / 16))' }}
+        style={{ width: 'min(92vw, calc(68vh * 9 / 16))' }}
       >
         <div className="relative w-full overflow-hidden rounded-3xl bg-black shadow-2xl" style={{ aspectRatio: '9 / 16' }}>
           <video
@@ -313,7 +313,7 @@ export default function Videos() {
 
   return (
     <section
-      className={`${playfair.variable} ${outfit.variable} w-full py-28 overflow-hidden`}
+      className={`${playfair.variable} ${outfit.variable} w-full overflow-hidden py-20 sm:py-28`}
       style={{
         backgroundColor: '#004C33', // Deep Forest Green
         color: '#F7E8C8', // Cream
@@ -322,12 +322,12 @@ export default function Videos() {
     >
       <div className="mx-auto max-w-[1600px] px-6 lg:px-8">
         {/* Header */}
-        <div className="mb-14 text-center">
+        <div className="mb-10 text-center sm:mb-14">
           <p className="mb-3 text-xs sm:text-sm font-semibold uppercase tracking-widest" style={{ color: '#B7E51B' }}>
             Real Stories & Real Sips
           </p>
           <h2
-            className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight uppercase"
+            className="text-[clamp(2rem,8vw,3rem)] font-bold tracking-tight uppercase sm:text-5xl md:text-6xl"
             style={{ fontFamily: 'var(--font-display), serif', color: '#F7E8C8' }}
           >
             Watch Plain Culture Take Over

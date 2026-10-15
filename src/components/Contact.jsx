@@ -24,7 +24,7 @@ export default function Contact() {
 					</p>
 					<h2
 						id="contact-title"
-						className="mt-5 max-w-xl text-5xl font-semibold leading-none tracking-tight sm:text-6xl"
+						className="mt-5 max-w-xl text-[clamp(2.25rem,10vw,3rem)] font-semibold leading-none tracking-tight sm:text-6xl"
 						style={{ fontFamily: "Georgia, serif" }}
 					>
 						Let&apos;s keep it plain.

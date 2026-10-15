@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import Image from 'next/image'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { Playfair_Display, Outfit } from 'next/font/google'
@@ -28,7 +29,7 @@ const RANK = {
   3: { h: 0.9, z: 10 },
 }
 
-const BOTTLE_H = 'clamp(200px, 46vw, 600px)' // centre bottle height — raise the numbers for bigger bottles
+const BOTTLE_H = 'clamp(160px, 46vw, 600px)' // centre bottle height — scales down on narrow phones
 const OVERLAP = 0.06 // how much neighbouring bottles tuck behind each other (× centre height). Higher = tighter
 
 /* Shadows — all sizes scale with the bottle height.
@@ -251,9 +252,12 @@ const BrandStory = () => {
           className="relative mt-14 flex h-[calc(var(--bottle-h)*1.35)] flex-none items-end justify-center sm:mt-20 sm:h-[calc(var(--bottle-h)*1.28)]"
           style={{ '--bottle-h': BOTTLE_H, width: 'min(100vw, 1440px)' }}
         >
-          <img
+          <Image
             src="/banner.png"
             alt=""
+            width={1672}
+            height={941}
+            sizes="(min-width: 1500px) 1800px, 120vw"
             draggable={false}
             className="pointer-events-none absolute left-1/2 top-0 h-[119%] w-[min(120vw,1800px)] max-w-none -translate-x-1/2 object-cover object-center sm:h-[125%]"
             style={{ zIndex: 0 }}

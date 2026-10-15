@@ -270,7 +270,7 @@ export default function Products() {
               onContextMenu={(e) => e.preventDefault()}
             >
               <div aria-hidden className="absolute inset-0 flex items-center justify-center">
-                <div data-m-disc className="aspect-square w-[min(108%,54svh)] rounded-full" style={{ background: LIME }} />
+                <div data-m-disc className="aspect-square max-h-full max-w-[108%] w-[min(108%,54svh)] rounded-full" style={{ background: LIME }} />
               </div>
 
               {PRODUCTS.map((p, i) => (

@@ -491,7 +491,7 @@ export default function Hero() {
 
         <div data-cta className="mt-9 opacity-0" style={RISE}>
           <a
-            href="/products"
+            href="#products"
             className="group relative inline-flex items-center gap-5 overflow-hidden rounded-full py-2 pl-8 pr-2 text-[17px] font-semibold transition-shadow duration-700 hover:shadow-2xl"
             style={{ background: LIME, color: INK }}
           >
