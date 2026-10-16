@@ -4,7 +4,7 @@
  * components/About.jsx — Plain Culture "Why Plain?" section
  *
  * Stacked, in order: title → text + button → banner image → the four label promises
- * → three flavour features (muskmelon & banana, ragi, carrot).
+ * → three flavour features (muskmelon & banana, dates, carrot).
  * Motion: the banner and each flavour photo slowly settle (zoom-out) inside their frame
  * as they scroll in. Skipped for reduced motion.
  *
@@ -45,34 +45,34 @@ const FLAVOUR_FEATURES = [
     alt: 'Plain muskmelon and banana milk shake surrounded by fresh fruit',
     halo: '#F5D9A8',
     tilt: -3,
-    heading: 'Muskmelon & banana, made creamy',
+    heading: 'Mellow muskmelon, creamy banana',
     story: [
-      'Ripe muskmelon brings a mellow, sunlit sweetness; banana adds a naturally creamy finish to every sip.',
-      'Blended with cool milk for a smooth, satisfying shake, with the familiar goodness of fruit in every bottle.',
+      'Ripe muskmelon brings a light, fruity sweetness, while banana adds a mellow, creamy note.',
+      'Blended with milk into a smooth, easy-drinking shake, with both familiar fruit flavours coming through in every sip. The muskmelon stays bright and fresh, while banana rounds out the finish.',
     ],
   },
   {
-    key: 'ragi',
+    key: 'dates',
     image: '/about2.png',
-    alt: 'Plain ragi milk shake bottle surrounded by ragi grain',
+    alt: 'Plain dates milkshake bottle surrounded by dates and milk',
     halo: '#E3B968',
     tilt: 3,
-    heading: 'Ragi, kept honest',
+    heading: 'Dates, rich and velvety',
     story: [
-      'Long before it was called a superfood, ragi was just breakfast, stone-ground and stirred into milk to start the day right.',
-      'We kept that habit almost exactly as it was. A warm, nutty grain with a depth that needs nothing else added to taste complete.',
+      'Sweet dates give this milkshake its deep, caramel-like flavour and natural richness.',
+      'Creamy milk softens that rich sweetness, leaving dates at the heart of every smooth, satisfying sip. Its rounded flavour makes a comforting treat any time of day.',
     ],
   },
   {
     key: 'carrot',
     image: '/about1.png',
-    alt: 'Plain carrot milk shake bottle surrounded by fresh carrots',
+    alt: 'Plain carrot dates milkshake bottle surrounded by carrots and dates',
     halo: '#F0AE64',
     tilt: -4,
-    heading: 'Carrot, kept wholesome',
+    heading: 'Carrot & dates, naturally balanced',
     story: [
-      'Carrot milk shake sounds unusual until you taste it, earthy sweetness balanced by cold, creamy milk, the way it might have been made on a slow afternoon at home.',
-      'We press it fresh and skip the syrups, letting the carrot\u2019s own sweetness do the work.',
+      'Carrot brings a gentle, earthy flavour, balanced by the rounded sweetness of dates.',
+      'Blended with creamy milk, the two ingredients make a mellow, naturally sweet milkshake where neither flavour gets lost. Carrot adds a subtle savoury note, while dates leave a soft sweetness on the finish.',
     ],
   },
 ]

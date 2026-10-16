@@ -12,6 +12,7 @@ export default function IntroSplash() {
     const exitTimer = window.setTimeout(() => setIsExiting(true), 2000);
     const removeTimer = window.setTimeout(() => {
       setIsMounted(false);
+      document.documentElement.dataset.introComplete = "true";
       window.dispatchEvent(new Event("intro-loader-complete"));
     }, 2950);
 

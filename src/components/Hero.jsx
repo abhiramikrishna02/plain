@@ -41,14 +41,32 @@ const CREAM = 'rgba(247,232,200,0.86)'
 const RISE = { transform: 'translateY(18px)' }
 
 // Product bottles stay centred; ingredient compositions use the wider overlay sizing.
-const POSITION = { top: '0%', height: 'clamp(500px, 90vh, 1120px)', rotate: 0 }
-const ITEMS_POSITION = { top: '-4%', height: 'clamp(680px, 104vh, 1080px)' }
+const POSITION = {
+  top: '0%', height: 'clamp(500px, 90vh, 1120px)', rotate: 0,
+  mobile: {
+    top: '12%',
+    height: 'clamp(400px, 58svh, 760px)',
+    width: 'clamp(223px, 32.36svh, 424px)',
+  },
+}
+const ITEMS_POSITION = {
+  top: '-4%', height: 'clamp(680px, 104vh, 1080px)',
+  mobile: { top: '-2%', height: '70svh' },
+}
+
+const MOBILE_BACKGROUND = '/cdbgmob.png'
 
 const PRODUCTS = [
-  { id: 'dates', background: '/cdbg.png', items: '/cd.png', bottle: '/4.png', alt: 'Plain Culture — Dates', position: POSITION, itemsPosition: ITEMS_POSITION },
-  { id: 'millet', background: '/cdbg.png', items: '/mb.png', bottle: '/2.png', alt: 'Plain Culture — Millet', position: POSITION, itemsPosition: ITEMS_POSITION },
-  { id: 'fruit', background: '/cdbg.png', items: '/d.png', bottle: '/1.png', alt: 'Plain Culture — Fruit', position: POSITION, itemsPosition: ITEMS_POSITION },
+  { id: 'dates', background: '/cdbg.png', mobileBackground: MOBILE_BACKGROUND, items: '/cd.png', mobileItems: '/cdmob.png', bottle: '/4.png', alt: 'Plain Culture — Carrot & Dates', position: POSITION, itemsPosition: ITEMS_POSITION },
+  { id: 'millet', background: '/cdbg.png', mobileBackground: MOBILE_BACKGROUND, items: '/mb.png', mobileItems: '/mbmob.png', bottle: '/2.png', alt: 'Plain Culture — Muskmelon & Banana', position: POSITION, itemsPosition: ITEMS_POSITION },
+  { id: 'fruit', background: '/cdbg.png', mobileBackground: MOBILE_BACKGROUND, items: '/d.png', mobileItems: '/dmob.png', bottle: '/1.png', alt: 'Plain Culture — Dates', position: POSITION, itemsPosition: ITEMS_POSITION },
 ]
+
+const isMobileHero = () => typeof window !== 'undefined' && window.matchMedia('(max-width: 1023px)').matches
+const assetFor = (product, kind) => {
+  const mobileAsset = product[`mobile${kind[0].toUpperCase()}${kind.slice(1)}`]
+  return isMobileHero() && mobileAsset ? mobileAsset : product[kind]
+}
 
 // Right-side carousel icons, top to bottom. Icon N is highlighted while PRODUCTS[N] is showing.
 const CAROUSEL_ICONS = [
@@ -58,18 +76,18 @@ const CAROUSEL_ICONS = [
   { id: 'guava', src: '/guava0.png' },
 ]
 
-const place = (p) => ({ left: '50%', width: 'auto', top: p.top, height: p.height })
+const place = (p) => ({ left: '50%', width: p.width || 'auto', top: p.top, height: p.height, objectFit: 'contain' })
 // DOM layers, each rendered twice (set A with the first flavour's asset, set B empty until its first transition).
 const LAYERS = [
   { k: 'bg', cls: 'absolute inset-0 h-full w-full object-cover', style: { zIndex: 1 }, src: PRODUCTS[0].background, alt: '' },
-  { k: 'items', cls: 'absolute', style: { zIndex: 2, ...place(PRODUCTS[0].itemsPosition) }, src: PRODUCTS[0].items, alt: '' },
-  { k: 'bottle', cls: 'absolute', style: { zIndex: 3, ...place(PRODUCTS[0].position) }, src: PRODUCTS[0].bottle, alt: PRODUCTS[0].alt },
+  { k: 'items', cls: 'absolute hidden lg:block', style: { zIndex: 2, ...place(PRODUCTS[0].itemsPosition) }, src: PRODUCTS[0].items, alt: '' },
+  { k: 'bottle', cls: 'absolute object-contain', style: { zIndex: 3, ...place(PRODUCTS[0].position) }, src: PRODUCTS[0].bottle, alt: PRODUCTS[0].alt },
 ]
 
 const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-// Applies the optional `mobile` override (under 768px) to a position object.
-const resolve = (pos) => ({ ...pos, ...(typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches && pos.mobile ? pos.mobile : null) })
+// Applies the compact position override below the desktop breakpoint.
+const resolve = (pos) => ({ ...pos, ...(isMobileHero() && pos.mobile ? pos.mobile : null) })
 
 // Highlights one carousel pill, dims the rest, and fills the active pill's progress line over `fillSeconds`.
 function activateIcon(pills, bars, index, reduce, fillSeconds) {
@@ -126,10 +144,26 @@ export default function Hero() {
     const failed = failedA.current
     const reduce = reducedMotion()
 
+    if (video) {
+      video.src = isMobileHero() ? '/heromob.mp4' : '/herovideo.mp4'
+      video.load()
+    }
+
+    const initialItemsPosition = resolve(PRODUCTS[0].itemsPosition)
+    const initialBottlePosition = resolve(PRODUCTS[0].position)
+    bg[0].src = assetFor(PRODUCTS[0], 'background')
+    items[0].src = assetFor(PRODUCTS[0], 'items')
+    items[0].style.top = initialItemsPosition.top
+    items[0].style.height = initialItemsPosition.height
+    bottle[0].style.top = initialBottlePosition.top
+    bottle[0].style.height = initialBottlePosition.height
+    bottle[0].style.width = initialBottlePosition.width || 'auto'
+
     // bg is full-bleed (opacity only); items and bottle are centred with xPercent and slide in vertically.
-    gsap.set(items[0], { xPercent: -50, y: ITEMS_ENTER_Y, opacity: 0 })
-    gsap.set(bottle[0], { xPercent: -50, rotation: PRODUCTS[0].position.rotate || 0, y: BOTTLE_ENTER_Y, opacity: 0 })
-    gsap.set([items[1], bottle[1]], { xPercent: -50 })
+    gsap.set(items[0], { xPercent: -50, scaleX: isMobileHero() ? 1.45 : 1, y: ITEMS_ENTER_Y, opacity: 0 })
+    gsap.set(bottle[0], { xPercent: -50, scaleX: 1, scaleY: 1, rotation: PRODUCTS[0].position.rotate || 0, y: BOTTLE_ENTER_Y, opacity: 0 })
+    gsap.set(items[1], { xPercent: -50, scaleX: isMobileHero() ? 1.45 : 1 })
+    gsap.set(bottle[1], { xPercent: -50, scaleX: 1, scaleY: 1 })
 
     const finish = () => {
       if (videoTransitioned.current) return
@@ -164,24 +198,33 @@ export default function Hero() {
       }
       raf = requestAnimationFrame(tick)
     }
-    raf = requestAnimationFrame(tick)
+
+    const startPlayback = () => {
+      if (videoTransitioned.current) return
+      raf = requestAnimationFrame(tick)
+      const playPromise = video.play()
+      if (playPromise?.catch) playPromise.catch(finish)
+    }
 
     video.addEventListener('ended', finish)
     video.addEventListener('error', finish)
-    const playPromise = video.play()
-    if (playPromise?.catch) playPromise.catch(finish)
+
+    const waitForIntro = isMobileHero() && document.documentElement.dataset.introComplete !== 'true'
+    if (waitForIntro) window.addEventListener('intro-loader-complete', startPlayback, { once: true })
+    else startPlayback()
 
     return () => {
       cancelAnimationFrame(raf)
       video.removeEventListener('ended', finish)
       video.removeEventListener('error', finish)
+      window.removeEventListener('intro-loader-complete', startPlayback)
     }
   }, [])
 
   /* ─── preload flavours 2 and 3 (flavour 1 already loads via set A) ─── */
   useEffect(() => {
     PRODUCTS.slice(1).forEach((p) =>
-      [p.background, p.items, p.bottle].forEach((src) => {
+      [assetFor(p, 'background'), assetFor(p, 'items'), p.bottle].forEach((src) => {
         const img = new window.Image()
         img.onload = () => {
           assetStatus.current[src] = 'ok'
@@ -239,7 +282,7 @@ export default function Hero() {
     let busy = false // a transition is running
     let pending = null // slide requested by a click while busy
     let holdTimer
-    const bgFailed = (i) => assetStatus.current[PRODUCTS[i].background] === 'error'
+    const bgFailed = (i) => assetStatus.current[assetFor(PRODUCTS[i], 'background')] === 'error'
 
     const load = (el, src) => {
       el.onerror = () => {
@@ -248,12 +291,13 @@ export default function Hero() {
       el.src = src
     }
     // Loads and positions a back-set layer at its entry pose (or hides it if its asset failed).
-    const prep = (el, src, ok, pos, from) => {
+    const prep = (el, src, ok, pos, from, scaleX = 1) => {
       if (!ok) return void gsap.set(el, { opacity: 0 })
       load(el, src)
       el.style.top = pos.top
       el.style.height = pos.height
-      gsap.set(el, { ...from, opacity: 0 })
+      el.style.width = pos.width || 'auto'
+      gsap.set(el, { ...from, opacity: 0, scaleX, scaleY: 1 })
     }
 
     // Transitions to `forced` (a clicked slide), or to the next slide when called without an argument.
@@ -269,15 +313,17 @@ export default function Hero() {
       if (checked >= PRODUCTS.length) return // every background failed — keep the current scene
 
       const product = PRODUCTS[targetIndex]
-      const itemsOk = assetStatus.current[product.items] !== 'error'
+      const background = assetFor(product, 'background')
+      const productItems = assetFor(product, 'items')
+      const itemsOk = assetStatus.current[productItems] !== 'error'
       const bottleOk = assetStatus.current[product.bottle] !== 'error'
       const [f, b] = frontIsA.current ? [0, 1] : [1, 0] // front / back set indices
 
       // Carousel: move the highlight to this slide's icon as the transition begins.
       activateIcon(pillRefs.current, barRefs.current, targetIndex % CAROUSEL_ICONS.length, reduce, TRANSITION_S + HOLD_MS / 1000)
 
-      load(bg[b], product.background)
-      prep(items[b], product.items, itemsOk, resolve(product.itemsPosition), { y: ITEMS_ENTER_Y })
+      load(bg[b], background)
+      prep(items[b], productItems, itemsOk, resolve(product.itemsPosition), { y: ITEMS_ENTER_Y }, isMobileHero() ? 1.45 : 1)
       prep(bottle[b], product.bottle, bottleOk, resolve(product.position), { rotation: product.position.rotate || 0, y: BOTTLE_ENTER_Y })
 
       busy = true
@@ -385,8 +431,8 @@ export default function Hero() {
     <section
       ref={sectionRef}
       id="home"
-      className={`${playfair.variable} ${outfit.variable} relative isolate w-full max-w-full overflow-hidden`}
-      style={{ minHeight: '100svh', backgroundColor: '#004C33' }}
+      className={`${playfair.variable} ${outfit.variable} relative isolate min-h-[100svh] w-full max-w-full overflow-hidden`}
+      style={{ backgroundColor: '#004C33' }}
     >
       <h1 className="sr-only">Plain Culture</h1>
 
@@ -395,8 +441,6 @@ export default function Hero() {
         ref={videoRef}
         className="absolute inset-0 h-full w-full object-cover"
         style={{ zIndex: 0 }}
-        src="/Hero.mp4"
-        autoPlay
         muted
         playsInline
         preload="auto"
@@ -471,25 +515,25 @@ export default function Hero() {
       </div>
 
       {/* z-index 10: hero content — stable across flavour changes */}
-      <div ref={copyRef} className="relative flex h-full min-h-[100svh] max-w-[640px] flex-col justify-center px-6 lg:px-20" style={{ zIndex: 10 }}>
-        <p data-eyebrow className="flex items-center gap-3 text-[15px] font-medium tracking-wide opacity-0 sm:text-[16px]" style={{ color: CREAM, ...RISE }}>
+      <div ref={copyRef} className="relative mt-[70svh] flex w-full max-w-none flex-col justify-start px-6 pt-1 pb-8 sm:px-10 lg:mt-0 lg:h-full lg:min-h-[100svh] lg:max-w-[640px] lg:justify-center lg:px-20 lg:py-0" style={{ zIndex: 10 }}>
+        <p data-eyebrow className="flex items-center gap-3 text-[14px] font-medium tracking-wide text-[#004C33] opacity-0 sm:text-[16px] lg:text-[#F7E8C8]" style={RISE}>
           <span className="h-2.5 w-2.5 rounded-full" style={{ background: LIME }} />
           Introducing Plain Culture
         </p>
 
         <h2
           data-headline
-          className="mt-6 text-[clamp(3rem,7.5vw,5.75rem)] leading-[1.04] tracking-[-0.02em] opacity-0"
-          style={{ fontFamily: 'var(--font-display), Georgia, serif', fontWeight: 600, color: '#F7E8C8', ...RISE }}
+          className="mt-4 text-[clamp(2.7rem,10vw,4rem)] leading-[0.98] tracking-[-0.02em] text-[#004C33] opacity-0 sm:mt-6 lg:mt-6 lg:text-[clamp(3rem,7.5vw,5.75rem)] lg:leading-[1.04] lg:text-[#F7E8C8]"
+          style={{ fontFamily: 'var(--font-display), Georgia, serif', fontWeight: 600, ...RISE }}
         >
           Just the Good Stuff.
         </h2>
 
-        <p data-desc className="mt-6 max-w-[46ch] text-[17px] font-light leading-[1.75] opacity-0 sm:text-[19px]" style={{ color: CREAM, ...RISE }}>
+        <p data-desc className="mt-4 max-w-[34ch] text-[15px] font-light leading-[1.5] text-[#004C33] opacity-0 sm:mt-6 sm:text-[19px] sm:leading-[1.75] lg:max-w-[46ch] lg:text-[#F7E8C8]" style={RISE}>
           Real fruit, plainly done. No shortcuts, no additives — just the ingredient at its best, bottled.
         </p>
 
-        <div data-cta className="mt-9 opacity-0" style={RISE}>
+        <div data-cta className="mt-5 opacity-0 sm:mt-7 lg:mt-9" style={RISE}>
           <a
             href="#products"
             className="group relative inline-flex items-center gap-5 overflow-hidden rounded-full py-2 pl-8 pr-2 text-[17px] font-semibold transition-shadow duration-700 hover:shadow-2xl"
