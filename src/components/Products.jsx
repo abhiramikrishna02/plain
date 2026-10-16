@@ -33,11 +33,11 @@ const EDGE = 'rgba(0,76,51,0.16)'
 
 // splash = image that shows behind the bottle on hover (desktop) / touch-hold (mobile)
 const PRODUCTS = [
-  { src: '/1.png', name: 'Dates', text: 'Cool, smooth and gentle.', splash: '/datesbg.png' },
-  { src: '/2.png', name: 'Muskmelon', text: 'Sweet, creamy and bright.', splash: '/muskmelonbg.png' },
-  { src: '/3.png', name: 'Dates', text: 'Naturally sweet, no added sugar.', splash: '/milletbg.png' },
-  { src: '/4.png',  name: 'Carrot', text: 'Naturally sweet, no added sugar.', splash: '/carrotbg.png' },
-  { src: '/ragi&dates.png', name: 'Ragi & Dates', text: 'Iron-rich ragi with sweet dates.', splash: '/ragibg.png' },
+  { src: '/1.png', name: 'Dates', text: 'Naturally sweet, rich with dates.', splash: '/datesbg.png' },
+  { src: '/2.png', name: 'Muskmelon', text: 'Smooth and creamy with ripe muskmelon.', splash: '/muskmelonbg.png' },
+  { src: '/3.png', name: 'Dates & Millet', text: 'A naturally sweet blend of dates and millet.', splash: '/milletbg.png' },
+  { src: '/4.png',  name: 'Carrot', text: 'A gentle blend of carrot and dates.', splash: '/carrotbg.png' },
+  { src: '/ragi&dates.png', name: 'Arrowroot', text: 'A simple, refreshing drink made with arrowroot.', splash: '/ragibg.png' },
 ]
 
 const STEP_VH = 0.55 // mobile: scroll distance per slide (× viewport height) — raise for slower, lower for faster
@@ -328,7 +328,7 @@ export default function Products() {
                   aria-hidden={i !== mActive}
                   className={`absolute inset-0 flex flex-col items-center justify-center text-center ${i === 0 ? '' : 'invisible opacity-0'}`}
                 >
-                  <h3 className="text-[clamp(2.6rem,12vw,3.4rem)] leading-[1.02] tracking-tight" style={DISPLAY}>
+                  <h3 className={`text-[clamp(2.6rem,12vw,3.4rem)] leading-[1.02] tracking-tight ${p.name === 'Dates & Millet' ? 'whitespace-nowrap text-[clamp(1.8rem,8vw,2.6rem)]' : ''}`} style={DISPLAY}>
                     {p.name}
                   </h3>
                   <p className="mt-2 max-w-[32ch] px-2 text-[clamp(14px,4vw,16px)] font-light opacity-80">{p.text}</p>
@@ -404,7 +404,7 @@ export default function Products() {
                         />
                       </div>
 
-                      <h3 className="relative z-10 mt-5 text-center text-[clamp(1.5rem,2.2vw,2.25rem)] leading-[1.05] tracking-tight" style={DISPLAY}>
+                      <h3 className={`relative z-10 mt-5 text-center ${p.name === 'Dates & Millet' ? 'whitespace-nowrap text-[clamp(1.25rem,1.8vw,1.85rem)]' : 'text-[clamp(1.5rem,2.2vw,2.25rem)]'} leading-[1.05] tracking-tight`} style={DISPLAY}>
                         {p.name}
                       </h3>
                       <p className="relative z-10 mt-2 text-center text-[clamp(14px,1.1vw,17px)] font-light leading-[1.5] opacity-80">{p.text}</p>
